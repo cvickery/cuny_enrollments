@@ -17,12 +17,23 @@ from term_codes import term_code
 
 csv.field_size_limit(sys.maxsize)
 
+days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
 
 def numeric_part(catnum_str):
   num_part = float(re.search(r'(\d+(\.\d+)?)', catnum_str).group(1))
   while num_part > 1000.0:
     num_part /= 10.0
   return f'{num_part:06.1f}'
+
+
+def make_meetings_str(start, end, days_yn):
+  day_list = set()
+  for i in range(len(days_yn)):
+    if days_yn[i] == 'Y':
+      day_list.add(i)
+  days_str = ',@'.join([days[index] for index in sorted(day_list)])
+  return f'{start.replace(":00.000000", "")} {end.replace(":00.000000", "")} {days_str}'
 
 
 def mogrify(input_file):
@@ -59,7 +70,7 @@ def mogrify(input_file):
         if term is None:
           code, term = term_code(row.term, row.session)
           m, d, y = row[-1].split('/')
-          file_name = f'Enrollments_{term.replace(" ", "-")}_{y}-{m}-{d}.csv'
+          file_name = f'Enrollments%{code}%{y}-{m}-{d}.csv'
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
         status_counts[row.class_status] += 1
@@ -68,21 +79,26 @@ def mogrify(input_file):
         course_str = f'{row.subject_area:>7}@{row.catalog_nbr.strip():<6}'
         title = row.class_title.replace(' ', '@').replace('\'', '’')
         section = row.section
+        class_number = row.class_nbr
         component = row.course_component
         enrollment = row.total_enrollment
         limit = row.enrollment_capacity
         room = row.facil_id
         mode = row.mode
+        meetings_str = make_meetings_str(row.mtg_start, row.mtg_end,
+                                         [row.mon, row.tues, row.wed, row.thurs,
+                                          row.fri, row.sat, row.sun])
+
         # For spaces in the instructor’s name
         instructor = row.instructor.replace(',', ',@').replace(' ', '@')
-        courses.append(f'{course_str} {title} {section:>05} {component} {limit:>4} {enrollment:>3} '
-                       f'{room} {mode} {instructor}')
+        courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4} '
+                       f'{enrollment:>3} {room} {meetings_str} {mode} {instructor}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
   with open(file_name, 'w') as outfile:
     writer = csv.writer(outfile)
-    writer.writerow(['Course', 'Title', 'Section', 'Component', 'Limit', 'Enrollment', 'Room',
-                     'Mode', 'Instructor'])
+    writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
+                     'Room', 'Schedule', 'Mode', 'Instructor'])
     for course in courses:
       row = course.split()
       row = [col.replace('@', ' ') for col in row]
