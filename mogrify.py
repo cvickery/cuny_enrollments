@@ -70,7 +70,7 @@ def mogrify(input_file):
         if term is None:
           code, term = term_code(row.term, row.session)
           m, d, y = row[-1].split('/')
-          file_name = f'Enrollments%{code}%{y}-{m}-{d}.csv'
+          file_name = f'Enrollments_{y}-{m}-{d}_{term}.csv'
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
         status_counts[row.class_status] += 1
