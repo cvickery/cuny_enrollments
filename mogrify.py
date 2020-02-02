@@ -28,12 +28,17 @@ def numeric_part(catnum_str):
 
 
 def make_meetings_str(start, end, days_yn):
+  """ Make a string that tells the days and times when a class section meets.
+      Spaces are filled with @, which need to be fixed once the string has been encapsulated in
+      a cell.
+  """
   day_list = set()
   for i in range(len(days_yn)):
     if days_yn[i] == 'Y':
       day_list.add(i)
   days_str = ',@'.join([days[index] for index in sorted(day_list)])
-  return f'{start.replace(":00.000000", "")} {end.replace(":00.000000", "")} {days_str}'
+  return (f'{start.replace(":00.000000", "").strip()}'
+          f'—{end.replace(":00.000000", "").strip()}@{days_str}')
 
 
 def mogrify(input_file):
