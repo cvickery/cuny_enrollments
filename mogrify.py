@@ -31,12 +31,13 @@ GenEd = namedtuple('GenEd', 'rd copt')
 no_gened = GenEd._make(['', ''])
 geneds = dict()
 that = None
-# Get latest csv from downloads and say that that's that.
+# Get latest  QNS_GENED csv from downloads and say that that's that.
 them = Path().glob('./downloads/*GENED*.csv')
 for this in them:
   if that is None or this.stat().st_mtime > that.stat().st_mtime:
     that = this
 if that is not None:
+  print(f'Using {that.name}')
   with open(that) as gened_file:
     cols = None
     reader = csv.reader(gened_file)
@@ -51,13 +52,17 @@ if that is not None:
           rd = rds[row.designation]
         else:
           rd = '--'
-        copts = [copt for copt in row.copt.split() if copt.startswith('QNS')]
+        copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
         if len(copts) == 0:
           copts = ['--']
-        geneds[course] = GenEd._make([rd, ', '.join(copts)])
+        geneds[course] = GenEd._make([rd, ',@'.join(copts)])
+else:
+  print('NOTE: GenEd info missing.')
 
 
 def numeric_part(catnum_str):
+  """ For sorting courses in catalog number order within a discipline.
+  """
   num_part = float(re.search(r'(\d+(\.\d+)?)', catnum_str).group(1))
   while num_part > 1000.0:
     num_part /= 10.0
@@ -79,7 +84,7 @@ def make_meetings_str(start, end, days_yn):
 
 
 def mogrify(input_file):
-  """
+  """ Convert an ENROLLMENT-CAPACITY query into a useable format, including GenEd info.
   """
   input_path = Path(input_file)
   if not input_path.exists():
@@ -159,6 +164,8 @@ def mogrify(input_file):
 
 
 if __name__ == '__main__':
+  """ Find the latest enrollment file and process it.
+  """
   parser = ArgumentParser(description='Transform CUNY enrollment query into something useful.')
   parser.add_argument('-d', '--debug', action='store_true')
   parser.add_argument('-q', '--query_file', default=None)
