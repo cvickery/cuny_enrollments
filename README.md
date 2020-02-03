@@ -1,7 +1,7 @@
 # CUNY Enrollments
 
 Converts a CUNYfirst query, QNS\_CV\_ENROLLMENT\_CAPACITY, and converts it into a CSV file named
-*Enrollments%&lt;term>%&lt;date>.csv*. The output file gives course title, course components,
+*Enrollments_&lt;date>_&lt;term>.csv*. The output file gives course title, course components,
 sections, seats, enrollment limit, number of students enrolled, and the name of the primary
 instructor for each section, ordered by discipline and catalog number.
 

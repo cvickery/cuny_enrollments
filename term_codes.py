@@ -12,15 +12,15 @@ def term_code(term: str, session: str) -> str:
       M is a month number, interpretation depends on session code (SSS)
 
 
-   M  SSS   TT Name
-   2* WIN   10 Winter
-   2    1   20 Spring
-   6  4W1   41 Summer 1 Short
-   6  4W2   42 Summer 1 Long
-   6  10W   60 Summer 10 Week
-   6  6W1   61 Summer 2 Short
-   6  6W2   62 Summer 2 Long
-   9    1   90 Fall
+   M  SSS   TT Name             Abbr
+   2* WIN   10 Winter           WIN
+   2    1   20 Spring           SP
+   6  4W1   41 Summer 1 Short   SS1
+   6  4W2   42 Summer 1 Long    SL1
+   6  10W   60 Summer 10 Week   S10
+   6  6W1   61 Summer 2 Short   SS2
+   6  6W2   62 Summer 2 Long    SL2
+   9    1   90 Fall             FA
   """
   year = 1900 + 100 * int(term[0]) + int(term[1:3])
   month = f'{term[3]}'
@@ -28,9 +28,9 @@ def term_code(term: str, session: str) -> str:
   if session == '1':
     term_code = f'{year}.{month}0'
     if month == '2':
-      term_name = f'Spring {year}'
+      term_name = f'{year}.SPR'
     elif month == '9':
-      term_name = f'Fall {year}'
+      term_name = f'{year}.FALL'
     else:
       raise ValueError(f'Unknown term-session: {term}-{session}')
 
@@ -40,33 +40,33 @@ def term_code(term: str, session: str) -> str:
     if month == '9':
       year += 1
     term_code = f'{year}.10'
-    term_name = f'Winter {year}'
+    term_name = f'{year}.WIN'
 
   elif month == '6' and session == '4W1':
     term_code = f'{year}.41'
-    term_name = f'Summer Short I {year}'
+    term_name = f'{year}.SS1'
 
   elif month == '6' and session == '4W2':
     term_code = f'{year}.042'
     # This code changed meaning in 2016
     if year < 2016:
-      term_name = f'Summer Long I {year}'
+      term_name = f'{year}.SL1'
     else:
-      term_name = f'Summer Short II {year}'
+      term_name = f'{year}.SS2'
 
   elif month == '6' and session == '10W':
     # Another change in 2016: this was a ten-week summer session that wasn’t intended to be used,
     # but CHEM 113 does use it.
     term_code = f'{year}.60'
-    term_name = f'Summer Ten Week {year}'
+    term_name = f'{year},S10'
 
   elif month == '6' and session == '6W1':
     term_code = f'{year}.61'
-    term_name = f'Summer Long I {year}'
+    term_name = f'{year}.SL1'
 
   elif month == '6' and session == '6W2':
     term_code = f'{year}.62'
-    term_name = f'Summer Long II {year}'
+    term_name = f'{year}.SL2'
 
   else:
     raise ValueError(f'Unknown term-session: {term}-{session}')
