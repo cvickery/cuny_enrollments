@@ -18,6 +18,41 @@ from term_codes import term_code
 csv.field_size_limit(sys.maxsize)
 
 days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+rds = {'RECR': 'EC',
+       'RLPR': 'LPS',
+       'RMQR': 'MQR',
+       'FCER': 'CE',
+       'FISR': 'IS',
+       'FUSR': 'USED',
+       'FSWR': 'SW',
+       'FWGR': 'WGCI'}
+# Generate dict of GenEd courses and the requirements they satisfy
+GenEd = namedtuple('GenEd', 'rd copt')
+no_gened = GenEd._make(['', ''])
+geneds = dict()
+that = None
+# Get latest csv from downloads and say that that's that.
+them = Path().glob('./downloads/*GENED*.csv')
+for this in them:
+  if that is None or this.stat().st_mtime > that.stat().st_mtime:
+    that = this
+if that is not None:
+  with open(that) as gened_file:
+    cols = None
+    reader = csv.reader(gened_file)
+    for line in reader:
+      if cols is None:
+        cols = ([col.lower().replace(' ', '_') for col in line])
+        GenEd_Row = namedtuple('GenEd_Row', cols)
+      else:
+        row = GenEd_Row._make(line)
+        course = f'{row.subject.strip()} {row.catalog.strip()}'
+        if row.designation in rds.keys():
+          rd = rds[row.designation]
+        else:
+          rd = ''
+        copts = [copt for copt in row.copt.split() if copt.startswith('QNS')]
+        geneds[course] = GenEd._make([rd, ', '.join(copts)])
 
 
 def numeric_part(catnum_str):
@@ -88,17 +123,22 @@ def mogrify(input_file):
         meetings_str = make_meetings_str(row.mtg_start, row.mtg_end,
                                          [row.mon, row.tues, row.wed, row.thurs,
                                           row.fri, row.sat, row.sun])
+        if course_str in geneds.keys():
+          gened = geneds[course_str]
+        else:
+          gened = no_gened
 
         # For spaces in the instructor’s name
         instructor = row.instructor.replace(',', ',@').replace(' ', '@')
         courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4} '
-                       f'{enrollment:>3} {room} {meetings_str} {mode} {instructor}')
+                       f'{enrollment:>3} {room} {meetings_str} {mode} {instructor} '
+                       f'{gened.rd} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
   with open(file_name, 'w') as outfile:
     writer = csv.writer(outfile)
     writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
-                     'Room', 'Schedule', 'Mode', 'Instructor'])
+                     'Room', 'Schedule', 'Mode', 'Instructor', 'RD', 'COPT'])
     for course in courses:
       row = course.split()
       row = [col.replace('@', ' ') for col in row]
@@ -116,7 +156,7 @@ if __name__ == '__main__':
   if args.query_file is None:
     that = None
     # Get latest csv from downloads and say that that's that.
-    them = Path().glob('./downloads/*.csv')
+    them = Path().glob('./downloads/*ENROL*.csv')
     for this in them:
       if that is None or this.stat().st_mtime > that.stat().st_mtime:
         that = this
