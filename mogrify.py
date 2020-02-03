@@ -50,8 +50,10 @@ if that is not None:
         if row.designation in rds.keys():
           rd = rds[row.designation]
         else:
-          rd = ''
+          rd = '--'
         copts = [copt for copt in row.copt.split() if copt.startswith('QNS')]
+        if len(copts) == 0:
+          copts = ['--']
         geneds[course] = GenEd._make([rd, ', '.join(copts)])
 
 
@@ -128,9 +130,12 @@ def mogrify(input_file):
         meetings_str = make_meetings_str(row.mtg_start, row.mtg_end,
                                          [row.mon, row.tues, row.wed, row.thurs,
                                           row.fri, row.sat, row.sun])
-        if course_str in geneds.keys():
-          gened = geneds[course_str]
+        gened_key = course_str.replace('@', ' ').strip()
+        if gened_key in geneds.keys():
+          gened = geneds[gened_key]
         else:
+          # print(f"{course_str.replace('@', ' ').strip()} not in {geneds.keys()}")
+          # exit()
           gened = no_gened
 
         # For spaces in the instructor’s name
