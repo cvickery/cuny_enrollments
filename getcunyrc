@@ -1,4 +1,4 @@
 open --user CVickery --env-password sftp://st-edge.cuny.edu
 cd ERP_Queens
-mget -EO /Users/vickery/CUNY_Enrollments/downloads QNS_QNS_CV_ENROLLMENT_CAPACITY*.csv \
+mget -EO /Users/vickery/CUNY_Enrollments/downloads QNS_CV_ENROLLMENT_CAPACITY*.csv \
                                                    QNS_GENED*.csv
