@@ -79,7 +79,8 @@ def make_meetings_str(start, end, days_yn):
     if days_yn[i] == 'Y':
       day_list.add(i)
   dows = [days[index] for index in sorted(day_list)]
-  time = f'{start.replace(":00 ", "").strip().lower()}—{end.replace(":00 ", "").strip().lower()}'
+  time = (f'{start.replace(":00.000000", "").strip().lower()}—'
+          f'{end.replace(":00.000000", "").strip().lower()}')
   combined = ',@'.join(dows) + f'@{time.replace(" ", "@")}'
   separate = [f'{d}@{time}' for d in dows] + [''] * (3 - len(dows))
   return combined, separate
