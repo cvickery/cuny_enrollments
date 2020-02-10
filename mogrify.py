@@ -150,15 +150,16 @@ def mogrify(input_file, separate_meeting_cols):
           gened = no_gened
 
         # For spaces in the instructor’s name
-        instructor = row.instructor.replace(',', ',@').replace(' ', '@')
+        instructor_name = row.instructor_name.replace(',', ',@').replace(' ', '@')
+        instructor_role = row.instructor_role.replace(',', ',@').replace(' ', '@')
         if separate_meeting_cols:
           courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4}'
                          f' {enrollment:>3} {room} "{separate[0]}" "{separate[1]}" "{separate[2]}"'
-                         f' {mode} {instructor} {gened.rd} {gened.copt}')
+                         f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
         else:
           courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4}'
-                         f' {enrollment:>3} {room} {combined} {mode} {instructor}'
-                         f' {gened.rd} {gened.copt}')
+                         f' {enrollment:>3} {room} {combined} {mode} {instructor_name}'
+                         f' {instructor_role} {gened.rd} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
   print(f'Generating {file_name}')
@@ -166,10 +167,11 @@ def mogrify(input_file, separate_meeting_cols):
     writer = csv.writer(outfile)
     if separate_meeting_cols:
       writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
-                       'Room', 'First', 'Second', 'Third', 'Mode', 'Instructor', 'RD', 'COPT'])
+                       'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
+                       'Role', 'RD', 'COPT'])
     else:
       writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
-                       'Room', 'Schedule', 'Mode', 'Instructor', 'RD', 'COPT'])
+                       'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'COPT'])
     for course in courses:
       row = course.split()
       row = [col.replace('@', ' ').replace('"', '') for col in row]
