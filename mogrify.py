@@ -192,7 +192,7 @@ if __name__ == '__main__':
   if args.query_file is None:
     that = None
     # Get latest csv from downloads and say that that's that.
-    them = Path().glob('./downloads/*ENROL*.csv')
+    them = Path().glob('./downloads/QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv')
     for this in them:
       if that is None or this.stat().st_mtime > that.stat().st_mtime:
         that = this
