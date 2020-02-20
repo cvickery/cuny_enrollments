@@ -51,10 +51,10 @@ if that is not None:
         if row.designation in rds.keys():
           rd = rds[row.designation]
         else:
-          rd = '--'
+          rd = '—'
         copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
         if len(copts) == 0:
-          copts = ['--']
+          copts = ['—']
         geneds[course] = GenEd._make([rd, ',@'.join(copts)])
 else:
   print('NOTE: GenEd info missing.')
@@ -82,7 +82,7 @@ def make_meetings_str(start, end, days_yn):
   time = (f'{start.replace(":00.000000", "").strip().lower()}—'
           f'{end.replace(":00.000000", "").strip().lower()}')
   combined = ',@'.join(dows) + f'@{time.replace(" ", "@")}'
-  separate = [f'{d}@{time}' for d in dows] + [''] * (3 - len(dows))
+  separate = [f'{d}@{time}' for d in dows] + ['—'] * (3 - len(dows))
   return combined, separate
 
 
@@ -131,13 +131,15 @@ def mogrify(input_file, separate_meeting_cols):
           continue
         course_str = f'{row.subject_area:>7}@{row.catalog_nbr.strip():<6}'
         title = row.class_title.replace(' ', '@').replace('\'', '’')
-        section = row.section
+        primary_component = row.primary_component
+        has_fees = row.fees_exist
+        section = row.class_section
         class_number = row.class_nbr
-        component = row.course_component
-        enrollment = row.total_enrollment
+        this_component = row.course_component
+        enrollment = row.enrollment_total
         limit = row.enrollment_capacity
-        room = row.facil_id
-        mode = row.mode
+        room = row.facility_id if row.facility_id != '' else '—'
+        mode = row.instruction_mode
         combined, separate = make_meetings_str(row.mtg_start, row.mtg_end,
                                                [row.mon, row.tues, row.wed, row.thurs,
                                                 row.fri, row.sat, row.sun])
@@ -150,15 +152,17 @@ def mogrify(input_file, separate_meeting_cols):
           gened = no_gened
 
         # For spaces in the instructor’s name
-        instructor_name = row.instructor_name.replace(',', ',@').replace(' ', '@')
-        instructor_role = row.instructor_role.replace(',', ',@').replace(' ', '@')
+        instructor_name = row.instructor.replace(',', ',@').replace(' ', '@')
+        instructor_role = row.role.replace(',', ',@').replace(' ', '@')
         if separate_meeting_cols:
-          courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4}'
-                         f' {enrollment:>3} {room} "{separate[0]}" "{separate[1]}" "{separate[2]}"'
+          courses.append(f'{course_str} {title} {has_fees} {primary_component} {this_component}'
+                         f' {class_number} {section:>05} {enrollment:>3} {limit:>4} {room} '
+                         f'"{separate[0]}" "{separate[1]}" "{separate[2]}"'
                          f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
         else:
-          courses.append(f'{course_str} {title} {class_number} {section:>05} {component} {limit:>4}'
-                         f' {enrollment:>3} {room} {combined} {mode} {instructor_name}'
+          courses.append(f'{course_str} {title} {has_fees} {primary_component} {this_component}'
+                         f' {class_number} {section:>05}'
+                         f' {enrollment:>3} {limit:>4} {room} {combined} {mode} {instructor_name}'
                          f' {instructor_role} {gened.rd} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
@@ -166,11 +170,13 @@ def mogrify(input_file, separate_meeting_cols):
   with open(file_name, 'w') as outfile:
     writer = csv.writer(outfile)
     if separate_meeting_cols:
-      writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
+      writer.writerow(['Course', 'Title', 'Has Fees', 'Primary Component', 'This Component',
+                       'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
                        'Role', 'RD', 'COPT'])
     else:
-      writer.writerow(['Course', 'Title', 'Class #', 'Section', 'Component', 'Limit', 'Enrollment',
+      writer.writerow(['Course', 'Title', 'Has Fees', 'Primary Component', 'This Component',
+                       'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'COPT'])
     for course in courses:
       row = course.split()
