@@ -159,7 +159,7 @@ def mogrify(input_file, separate_meeting_cols):
         if separate_meeting_cols:
           courses.append(f'{course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
                          f' {this_component} {class_number}'
-                         f'{section:>05} {enrollment:>3} {limit:>4} {room} '
+                         f' {section:>05} {enrollment:>3} {limit:>4} {room} '
                          f'"{separate[0]}" "{separate[1]}" "{separate[2]}"'
                          f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
         else:
