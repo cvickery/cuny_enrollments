@@ -133,6 +133,7 @@ def mogrify(input_file, separate_meeting_cols):
         title = row.class_title.replace(' ', '@').replace('\'', '’')
         primary_component = row.primary_component
         has_fees = row.fees_exist
+        is_ztc = 'Y' if row.crse_attr == 'OERS' else '—'
         section = row.class_section
         class_number = row.class_nbr
         this_component = row.course_component
@@ -155,13 +156,14 @@ def mogrify(input_file, separate_meeting_cols):
         instructor_name = row.instructor.replace(',', ',@').replace(' ', '@')
         instructor_role = row.role.replace(',', ',@').replace(' ', '@')
         if separate_meeting_cols:
-          courses.append(f'{course_str} {title} {has_fees} {primary_component} {this_component}'
-                         f' {class_number} {section:>05} {enrollment:>3} {limit:>4} {room} '
+          courses.append(f'{course_str} {title} {has_fees} {is_ztc} {primary_component}'
+                         f' {this_component} {class_number}'
+                         f'{section:>05} {enrollment:>3} {limit:>4} {room} '
                          f'"{separate[0]}" "{separate[1]}" "{separate[2]}"'
                          f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
         else:
-          courses.append(f'{course_str} {title} {has_fees} {primary_component} {this_component}'
-                         f' {class_number} {section:>05}'
+          courses.append(f'{course_str} {title} {has_fees} {is_ztc} {primary_component}'
+                         f' {this_component} {class_number} {section:>05}'
                          f' {enrollment:>3} {limit:>4} {room} {combined} {mode} {instructor_name}'
                          f' {instructor_role} {gened.rd} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
@@ -170,12 +172,12 @@ def mogrify(input_file, separate_meeting_cols):
   with open(file_name, 'w') as outfile:
     writer = csv.writer(outfile)
     if separate_meeting_cols:
-      writer.writerow(['Course', 'Title', 'Has Fees', 'Primary Component', 'This Component',
+      writer.writerow(['Course', 'Title', 'Has Fees', 'OERS', 'Primary Component', 'This Component',
                        'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
                        'Role', 'RD', 'COPT'])
     else:
-      writer.writerow(['Course', 'Title', 'Has Fees', 'Primary Component', 'This Component',
+      writer.writerow(['Course', 'Title', 'Has Fees', 'OERS', 'Primary Component', 'This Component',
                        'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'COPT'])
     for course in courses:
