@@ -86,7 +86,7 @@ def make_meetings_str(start, end, days_yn):
   return combined, separate
 
 
-def mogrify(input_file, separate_meeting_cols):
+def mogrify(input_file, separate_meeting_cols=False, separate_files=False):
   """ Convert an ENROLLMENT-CAPACITY query into a useable format, including GenEd info.
   """
   input_path = Path(input_file)
@@ -96,12 +96,9 @@ def mogrify(input_file, separate_meeting_cols):
   courses = []
   status_counts: Dict[str, int] = dict()
   cols = None
-  term = None
+  output_file = None
 
-  # with open(input_file, 'r') as f:
-  #   decrufted = f.read().translate(cruft_table)
-
-  # with io.StringIO(decrufted) as infile:
+  # Force the input file to be valid utf-8 text.
   with codecs.open(input_file, 'r', encoding='utf-8', errors='replace') as infile:
     reader = csv.reader(infile)
     for line in reader:
@@ -115,20 +112,24 @@ def mogrify(input_file, separate_meeting_cols):
         Row = namedtuple('Row', cols)
       else:
         row = Row._make(line)
+        # The CUNYfirst query could be used for any institution, but this is a QC project.
         if row.institution != 'QNS01':
           continue
-        if term is None:
-          code, term = term_code(row.term, row.session)
-          m, d, y = (int(col) for col in row[-1].split('/'))
+
+        if output_file is None:
+          # Use the query SYSDATE for the output file name
+          m, d, y = (int(col) for col in row.sysdate.split('/'))
           # Have to assume 21st century
           if y < 100:
             y += 2000
-          file_name = f'Enrollments_{y}-{int(m):02}-{int(d):02}_{term}.csv'
+          output_file = f'Enrollments_{y}-{int(m):02}-{int(d):02}.csv'
+        semester_code, semester_name = term_code(row.term, row.session)
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
         status_counts[row.class_status] += 1
         if row.class_status != 'Active':
           continue
+
         course_str = f'{row.subject_area:>7}@{row.catalog_nbr.strip():<6}'
         title = row.class_title.replace(' ', '@').replace('\'', '’')
         career = row.career
@@ -155,30 +156,38 @@ def mogrify(input_file, separate_meeting_cols):
 
         # For spaces in the instructor’s name
         instructor_name = row.instructor.replace(',', ',@').replace(' ', '@')
+        if instructor_name == '':
+          instructor_name = '—'
         instructor_role = row.role.replace(',', ',@').replace(' ', '@')
+        if instructor_role == '':
+          instructor_role = '—'
         if separate_meeting_cols:
-          courses.append(f'{course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
+          courses.append(f'{semester_code} {semester_name}'
+                         f' {course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
                          f' {this_component} {class_number}'
                          f' {section:>05} {enrollment:>3} {limit:>4} {room} '
                          f'"{separate[0]}" "{separate[1]}" "{separate[2]}"'
                          f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
         else:
-          courses.append(f'{course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
+          courses.append(f'{semester_code} {semester_name}'
+                         f' {course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
                          f' {this_component} {class_number} {section:>05}'
                          f' {enrollment:>3} {limit:>4} {room} {combined} {mode} {instructor_name}'
                          f' {instructor_role} {gened.rd} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
-  print(f'Generating {file_name}')
-  with open(file_name, 'w') as outfile:
+  print(f'Generating {output_file}')
+  with open(output_file, 'w') as outfile:
     writer = csv.writer(outfile)
     if separate_meeting_cols:
-      writer.writerow(['Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
+      writer.writerow(['Semester Code', 'Semester Name',
+                       'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
                        'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
                        'Role', 'RD', 'COPT'])
     else:
-      writer.writerow(['Course', 'Title', 'Level' 'Has Fees', 'OERS', 'Primary Component',
+      writer.writerow(['Semester Code', 'Semester Name',
+                       'Course', 'Title', 'Level' 'Has Fees', 'OERS', 'Primary Component',
                       'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'COPT'])
     for course in courses:
