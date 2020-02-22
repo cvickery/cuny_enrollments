@@ -1,6 +1,11 @@
 #! /usr/local/bin/python3
 
+import codecs
+import csv
+
 from argparse import ArgumentParser
+from collections import namedtuple
+from pathlib import Path
 
 
 def term_code(term: str, session: str) -> str:
@@ -75,15 +80,47 @@ def term_code(term: str, session: str) -> str:
 
 
 if __name__ == '__main__':
+
+  TermSess = namedtuple('TermSess', 'term session')
   parser = ArgumentParser(description='Convert CUNYfirst term and session into term_code.')
   parser.add_argument('-d', '--debug', action='store_true')
   parser.add_argument('-t', '--term', default='1202')
   parser.add_argument('-s', '--session', default='1')
+  parser.add_argument('-f', '--file', default=None)
   args = parser.parse_args()
-  if args.debug:
-    print(f'{args.term} {args.session} => ', end='')
-  term_code, term_name = term_code(args.term, args.session)
-  print(f'{term_code} <=> {term_name}')
+  if args.file is not None:
+    ts_set = set()
+    if args.file == 'latest':
+      that = None
+      them = Path().glob('./downloads/QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv')
+      for this in them:
+        if that is None or this.stat().st_mtime > that.stat().st_mtime:
+          that = this
+    else:
+      that = Path(args.query_file)
+    print(f'Using {that}')
+    cols = None
+    with codecs.open(that, 'r', encoding='utf-8', errors='replace') as infile:
+        reader = csv.reader(infile)
+        for line in reader:
+          if cols is None:
+            line[0] = line[0].replace('\ufeff', '')
+            if line[0] != 'Institution':
+              continue
+            cols = [col.lower().replace(' ', '_') for col in line]
+            if args.debug:
+              print(cols, file=sys.stderr)
+            Row = namedtuple('Row', cols)
+          else:
+            row = Row._make(line)
+            ts = (row.term, row.session)
+            if ts not in ts_set:
+              ts_set.add((row.term, row.session))
+              code, name = term_code(row.term, row.session)
+              print(f'{row.term} {row.session}: {code} <=> {name}')
+  else:
+    code, name = term_code(args.term, args.session)
+    print(f'{args.term} {args.session}: {code} <=> {name}')
 
 """ Above is based on the following extract from get_805_enrollments.php
 """
