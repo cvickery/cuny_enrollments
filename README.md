@@ -34,3 +34,5 @@ Although GenEd requirements don't change often, this table is updated daily anyw
 This is the script that gets the CUNYfirst query outputs from Tumbleweed, and (re-)generates the three output files, using the latest versions of the CUNYfirst queries available.
 
 - The "-sd" ("skip download") command line option suppresses the download from Tumbleweed in case the query files are available by some means other than download from Tumbleweed. (Used for development.)
+- Uses the *mogrify.py* script to generate the Enrollment files.
+- Uses the *gened.py* script to generate the Gened file.
