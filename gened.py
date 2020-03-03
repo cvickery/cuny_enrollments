@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-""" Create a spreadsheet showing Core and College Option courses at QC.
+""" Create a spreadsheet showing Core and College Option gened_courses at QC.
 """
 import csv
 import re
@@ -18,8 +18,9 @@ rds = {'RECR': 'EC',
        'FSWR': 'SW',
        'FWGR': 'WGCI'}
 
-GenEd = namedtuple('GenEd', 'rd copt')
-geneds = dict()
+GenEd = namedtuple('GenEd', 'rd variant copt')
+gened_courses = dict()  # courses with a GenEd RD or Attribute
+geneds = dict()  # The GenEd tuple for a gened_course
 
 
 def numeric_part(arg):
@@ -60,14 +61,22 @@ try:
         row = GenEd_Row._make(line)
         sysdate = row.sysdate
         course = f'{row.subject.strip()} {row.catalog.strip()}'
+        if course.startswith('RC') or course.startswith('FC'):
+          # Ignore exemption pseudo-courses
+          continue
         if row.designation in rds.keys():
           rd = rds[row.designation]
+          stem_variant = '@'
+          if float(row.course_contact_hours) > 3 or float(row.minimum_units) > 3:
+             stem_variant = 'Y'
         else:
           rd = '—'
         copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
         if len(copts) == 0:
           copts = ['—']
-        geneds[course] = [rd, ', '.join(copts)]
+        geneds[course] = [rd, stem_variant, ', '.join(copts)]
+        if rd != '—' or copts != ['—']:
+          gened_courses[course] = GenEd._make(geneds[course])
   courses = sorted(geneds.keys(), key=lambda c: numeric_part(c))
   courses = sorted(courses, key=lambda c: discipline_part(c))
 
@@ -76,9 +85,9 @@ try:
   print(f'Generating {outfile_name}')
   with open(outfile_name, 'w') as outfile:
     writer = csv.writer(outfile)
-    writer.writerow(['Course', 'Core', 'COPT'])
+    writer.writerow(['Course', 'Core', 'STEM Variant', 'COPT'])
     for course in courses:
-      writer.writerow([course] + geneds[course])
+      writer.writerow([course] + [ge.replace('@', '') for ge in geneds[course]])
 
 except Exception as e:
   print('*** Error:', e)

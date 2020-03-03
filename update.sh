@@ -22,4 +22,3 @@ fi
 # (re-)generate latest sheet, with separate meeting day columns
 ./mogrify.py -s
 ./mogrify.py
-./gened.py

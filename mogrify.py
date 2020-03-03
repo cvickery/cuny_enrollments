@@ -14,7 +14,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from term_codes import term_code
-from stem_designations import stem_designations
+from gened import gened_courses
 
 csv.field_size_limit(sys.maxsize)
 
@@ -27,38 +27,35 @@ rds = {'RECR': 'EC',
        'FUSR': 'USED',
        'FSWR': 'SW',
        'FWGR': 'WGCI'}
+
 # Generate dict of GenEd courses and the requirements they satisfy
-GenEd = namedtuple('GenEd', 'rd copt')
-no_gened = GenEd._make(['', ''])
-geneds = dict()
-that = None
-# Get latest  QNS_GENED csv from downloads and say that that's that.
-them = Path().glob('./downloads/*GENED*.csv')
-for this in them:
-  if that is None or this.stat().st_mtime > that.stat().st_mtime:
-    that = this
-if that is not None:
-  print(f'Using {that.name}')
-  with open(that) as gened_file:
-    cols = None
-    reader = csv.reader(gened_file)
-    for line in reader:
-      if cols is None:
-        cols = ([col.lower().replace(' ', '_') for col in line])
-        GenEd_Row = namedtuple('GenEd_Row', cols)
-      else:
-        row = GenEd_Row._make(line)
-        course = f'{row.subject.strip()} {row.catalog.strip()}'
-        if course in stem_designations.keys():
-          rd = stem_designations[course]
-        else:
-          rd = '—'
-        copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
-        if len(copts) == 0:
-          copts = ['—']
-        geneds[course] = GenEd._make([rd, ',@'.join(copts)])
-else:
-  print('NOTE: GenEd info missing.')
+GenEd = namedtuple('GenEd', 'rd variant copt')
+no_gened = GenEd._make(['', '', ''])
+# gened_courses = dict()
+# that = None
+# # Get latest  QNS_GENED csv from downloads and say that that's that.
+# them = Path().glob('./downloads/*GENED*.csv')
+# for this in them:
+#   if that is None or this.stat().st_mtime > that.stat().st_mtime:
+#     that = this
+# if that is not None:
+#   print(f'Using {that.name}')
+#   with open(that) as gened_file:
+#     cols = None
+#     reader = csv.reader(gened_file)
+#     for line in reader:
+#       if cols is None:
+#         cols = ([col.lower().replace(' ', '_') for col in line])
+#         GenEd_Row = namedtuple('GenEd_Row', cols)
+#       else:
+#         row = GenEd_Row._make(line)
+#         course = f'{row.subject.strip()} {row.catalog.strip()}'
+#         copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
+#         if len(copts) == 0:
+#           copts = ['—']
+#         gened_courses[course] = GenEd._make([row.designation, row.variant, ',@'.join(copts)])
+# else:
+#   print('NOTE: GenEd info missing.')
 
 
 def numeric_part(catnum_str):
@@ -87,7 +84,7 @@ def make_meetings_str(start, end, days_yn):
   return combined, separate
 
 
-def mogrify(input_file, separate_meeting_cols=False, check_stem_variant=False):
+def mogrify(input_file, separate_meeting_cols=False):
   """ Convert an ENROLLMENT-CAPACITY query into a useable format, including GenEd info.
   """
   input_path = Path(input_file)
@@ -150,10 +147,10 @@ def mogrify(input_file, separate_meeting_cols=False, check_stem_variant=False):
                                                [row.mon, row.tues, row.wed, row.thurs,
                                                 row.fri, row.sat, row.sun])
         gened_key = course_str.replace('@', ' ').strip()
-        if gened_key in geneds.keys():
-          gened = geneds[gened_key]
+        if gened_key in gened_courses.keys():
+          gened = gened_courses[gened_key]
         else:
-          # print(f"{course_str.replace('@', ' ').strip()} not in {geneds.keys()}")
+          # print(f"{course_str.replace('@', ' ').strip()} not in {gened_courses.keys()}")
           # exit()
           gened = no_gened
 
@@ -168,15 +165,17 @@ def mogrify(input_file, separate_meeting_cols=False, check_stem_variant=False):
           courses.append(f'{semester_code} {semester_name}'
                          f' {course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
                          f' {this_component} {class_number}'
-                         f' {section:>05} {enrollment:>3} {limit:>4} {room} '
-                         f'"{separate[0]}" "{separate[1]}" "{separate[2]}"'
-                         f' {mode} {instructor_name} {instructor_role} {gened.rd} {gened.copt}')
+                         f' {section:>05} {enrollment:>3} {limit:>4} {room}'
+                         f' "{separate[0]}" "{separate[1]}" "{separate[2]}"'
+                         f' {mode} {instructor_name} {instructor_role}'
+                         f' {gened.rd} {gened.variant} {gened.copt}')
         else:
           courses.append(f'{semester_code} {semester_name}'
                          f' {course_str} {title} {career} {has_fees} {is_ztc} {primary_component}'
                          f' {this_component} {class_number} {section:>05}'
-                         f' {enrollment:>3} {limit:>4} {room} {combined} {mode} {instructor_name}'
-                         f' {instructor_role} {gened.rd} {gened.copt}')
+                         f' {enrollment:>3} {limit:>4} {room} {combined} {mode}'
+                         f' {instructor_name} {instructor_role}'
+                         f' {gened.rd} {gened.variant} {gened.copt}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
   print(f'Generating {output_file}')
@@ -187,12 +186,12 @@ def mogrify(input_file, separate_meeting_cols=False, check_stem_variant=False):
                        'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
                        'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
                        'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
-                       'Role', 'RD', 'COPT'])
+                       'Role', 'RD', 'STEM Variant', 'COPT'])
     else:
       writer.writerow(['Semester Code', 'Semester Name',
                        'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
                       'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
-                       'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'COPT'])
+                       'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'STEM Variant', 'COPT'])
     for course in courses:
       row = course.split()
       row = [col.replace('@', ' ').replace('"', '') for col in row]
@@ -221,4 +220,4 @@ if __name__ == '__main__':
   else:
     that = Path(args.query_file)
   print(f'Using {that.name}')
-  mogrify(that, args.separate_meeting_columns, args.stem_variant)
+  mogrify(that, args.separate_meeting_columns)
