@@ -14,6 +14,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from term_codes import term_code
+from stem_designations import stem_designations
 
 csv.field_size_limit(sys.maxsize)
 
@@ -48,8 +49,8 @@ if that is not None:
       else:
         row = GenEd_Row._make(line)
         course = f'{row.subject.strip()} {row.catalog.strip()}'
-        if row.designation in rds.keys():
-          rd = rds[row.designation]
+        if course in stem_designations.keys():
+          rd = stem_designations[course]
         else:
           rd = '—'
         copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
@@ -86,7 +87,7 @@ def make_meetings_str(start, end, days_yn):
   return combined, separate
 
 
-def mogrify(input_file, separate_meeting_cols=False, separate_files=False):
+def mogrify(input_file, separate_meeting_cols=False, check_stem_variant=False):
   """ Convert an ENROLLMENT-CAPACITY query into a useable format, including GenEd info.
   """
   input_path = Path(input_file)
@@ -208,6 +209,7 @@ if __name__ == '__main__':
   parser.add_argument('-d', '--debug', action='store_true')
   parser.add_argument('-q', '--query_file', default=None)
   parser.add_argument('-s', '--separate_meeting_columns', action='store_true')
+  parser.add_argument('-sv', '--stem_variant', action='store_true')
   args = parser.parse_args()
   if args.query_file is None:
     that = None
@@ -219,4 +221,4 @@ if __name__ == '__main__':
   else:
     that = Path(args.query_file)
   print(f'Using {that.name}')
-  mogrify(that, args.separate_meeting_columns)
+  mogrify(that, args.separate_meeting_columns, args.stem_variant)
