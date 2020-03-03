@@ -150,8 +150,6 @@ def mogrify(input_file, separate_meeting_cols=False):
         if gened_key in gened_courses.keys():
           gened = gened_courses[gened_key]
         else:
-          # print(f"{course_str.replace('@', ' ').strip()} not in {gened_courses.keys()}")
-          # exit()
           gened = no_gened
 
         # For spaces in the instructor’s name

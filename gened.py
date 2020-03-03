@@ -67,14 +67,15 @@ try:
         if row.designation in rds.keys():
           rd = rds[row.designation]
           stem_variant = '@'
-          if float(row.course_contact_hours) > 3 or float(row.minimum_units) > 3:
+          if float(row.minimum_units) > 3:
              stem_variant = 'Y'
         else:
           rd = '—'
-        copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
+        copts = [copt for copt in row.copt.split(', ')
+                 if copt.startswith('QNS')]
         if len(copts) == 0:
           copts = ['—']
-        geneds[course] = [rd, stem_variant, ', '.join(copts)]
+        geneds[course] = [rd, stem_variant, ',@'.join(copts)]
         if rd != '—' or copts != ['—']:
           gened_courses[course] = GenEd._make(geneds[course])
   courses = sorted(geneds.keys(), key=lambda c: numeric_part(c))
@@ -87,7 +88,7 @@ try:
     writer = csv.writer(outfile)
     writer.writerow(['Course', 'Core', 'STEM Variant', 'COPT'])
     for course in courses:
-      writer.writerow([course] + [ge.replace('@', '') for ge in geneds[course]])
+      writer.writerow([course] + [ge.replace('@', ' ') for ge in geneds[course]])
 
 except Exception as e:
   print('*** Error:', e)
