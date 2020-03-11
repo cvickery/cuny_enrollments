@@ -72,7 +72,7 @@ try:
         else:
           rd = '—'
         copts = [copt for copt in row.copt.split(', ')
-                 if copt.startswith('QNS')]
+                 if copt.startswith('QNS') or copt == 'WRIC']
         if len(copts) == 0:
           copts = ['—']
         geneds[course] = [rd, stem_variant, ',@'.join(copts)]
