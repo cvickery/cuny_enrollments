@@ -82,7 +82,7 @@ try:
   courses = sorted(courses, key=lambda c: discipline_part(c))
 
   # Generate the CSV output file.
-  outfile_name = f'Gened_{sysdate}.csv'
+  outfile_name = f'{sysdate}_gened.csv'
   print(f'Generating {outfile_name}')
   with open(outfile_name, 'w') as outfile:
     writer = csv.writer(outfile)
