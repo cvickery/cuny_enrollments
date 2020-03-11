@@ -13,45 +13,58 @@ parser = ArgumentParser()
 parser.add_argument('-s', '--semester', default='2020.FALL')
 args = parser.parse_args()
 
-candidate = sorted(Path('/Users/vickery/CUNY_Enrollments/').glob('*combined*'),
-                   reverse=True)[0]
-Lists = namedtuple('Lists', 'EC MQR LPS WCGI USED CE IS SW LIT LANG SCI SYN W')
-Course = namedtuple('Course', 'title sections enrollment seats rd copts')
-Section = namedtuple('Section', 'seats enrollment')
-# lists = Lists._make()
+source_csv = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
+                    reverse=True)[0]
+Requirements = {'EC': 'English Composition',
+                'MQR': 'Mathematics and Quatnitative Reasoning',
+                'LPS': 'Life and Physical Sciences',
+                'WCGI': 'World Cultures and Global Issues',
+                'USED': 'United States Experience in its Diversity',
+                'CE': 'Creative Expression',
+                'IS': 'Individual and Society',
+                'SW': 'Scientific World',
+                'QNSLIT': 'QC Literature',
+                'QNSLANG': 'QC Language',
+                'QNSSCI': 'QC Science',
+                'QNSSYN': 'QC Synthesis',
+                'WRIC': 'Writing Intensive'}
 
+Course = namedtuple('Course', 'title sections data rd attrs')
+
+# Gather information for all sections of all scheduled courses
 courses = dict()
-sections = dict()
-
+requirements = {r: {} for r in Requirements.keys()}
 Row = None
-with open(candidate) as infile:
+with open(source_csv) as infile:
   reader = csv.reader(infile)
   for line in reader:
     if Row is None:
       Row = namedtuple('Row', [c.replace(' ', '_').replace('#', 'num').lower() for c in line])
       row_len = len(Row._fields)
       continue
-    if not line[1] != args.semester:
+    if line[1] != args.semester:
       continue
     while len(line) < row_len:
       line.append('')
     row = Row._make(line)
     if row.course not in courses.keys():
-      courses[row.course] = Course._make([row.title, 0, 0, 0, row.rd, row.copt])
-    if row.class_num not in sections.keys():
-      sections[row.class_num] = {row.course: [0, 0]}
-    try:
-      sections[row.class_num][row.course][0] += int(row.enrollment)
-      sections[row.class_num][row.course][1] += int(row.limit)
-    except KeyError as ke:
-      print('ke: ',
-            row.course,
-            row.class_num,
-            sections[row.class_num])
-      continue
-    print(row.course,
-          row.class_num,
-          sections[row.class_num][row.course][0],
-          sections[row.class_num][row.course][1])
-print(len(courses), 'courses')
-print(len(sections), 'sections')
+      courses[row.course] = Course._make([row.title, set(), [0, 0], row.rd, row.attr])
+    if row.section not in courses[row.course].sections:
+      courses[row.course].sections.add(row.section)
+      courses[row.course].data[0] += int(row.enrollment)
+      courses[row.course].data[1] += int(row.limit)
+      if row.rd in requirements.keys():
+        requirements[row.rd][row.course] = courses[row.course]
+      for attr in row.attr.split(','):
+        attr = attr.strip()
+        if attr in requirements.keys():
+          requirements[attr][row.course] = courses[row.course]
+# Generate the list of courses for each requirement
+for requirement, courses in requirements.items():
+  print(Requirements[requirement], len(courses.keys()))
+
+# print(len(courses), 'courses')
+# print('----------------------------------------------')
+# print(requirements)
+# print('----------------------------------------------')
+# print(courses)

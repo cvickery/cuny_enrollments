@@ -16,7 +16,7 @@ rds = {'RECR': 'EC',
        'FISR': 'IS',
        'FUSR': 'USED',
        'FSWR': 'SW',
-       'FWGR': 'WGCI'}
+       'FWGR': 'WCGI'}
 
 GenEd = namedtuple('GenEd', 'rd variant attr')
 gened_courses = dict()  # courses with a GenEd RD or Attribute
