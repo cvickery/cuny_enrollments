@@ -18,7 +18,7 @@ rds = {'RECR': 'EC',
        'FSWR': 'SW',
        'FWGR': 'WGCI'}
 
-GenEd = namedtuple('GenEd', 'rd variant copt')
+GenEd = namedtuple('GenEd', 'rd variant attr')
 gened_courses = dict()  # courses with a GenEd RD or Attribute
 geneds = dict()  # The GenEd tuple for a gened_course
 
@@ -55,7 +55,7 @@ try:
     reader = csv.reader(gened_file)
     for line in reader:
       if cols is None:
-        cols = ([col.lower().replace(' ', '_') for col in line])
+        cols = ([col.lower().replace(' ', '_').replace('copt', 'attr') for col in line])
         GenEd_Row = namedtuple('GenEd_Row', cols)
       else:
         row = GenEd_Row._make(line)
@@ -71,12 +71,12 @@ try:
              stem_variant = 'Y'
         else:
           rd = '—'
-        copts = [copt for copt in row.copt.split(', ')
-                 if copt.startswith('QNS') or copt == 'WRIC']
-        if len(copts) == 0:
-          copts = ['—']
-        geneds[course] = [rd, stem_variant, ',@'.join(copts)]
-        if rd != '—' or copts != ['—']:
+        attrs = [attr for attr in row.attr.split(', ')
+                 if attr.startswith('QNS') or attr == 'WRIC']
+        if len(attrs) == 0:
+          attrs = ['—']
+        geneds[course] = [rd, stem_variant, ',@'.join(attrs)]
+        if rd != '—' or attrs != ['—']:
           gened_courses[course] = GenEd._make(geneds[course])
   courses = sorted(geneds.keys(), key=lambda c: numeric_part(c))
   courses = sorted(courses, key=lambda c: discipline_part(c))
@@ -86,7 +86,7 @@ try:
   print(f'Generating {outfile_name}')
   with open(outfile_name, 'w') as outfile:
     writer = csv.writer(outfile)
-    writer.writerow(['Course', 'Core', 'STEM Variant', 'COPT'])
+    writer.writerow(['Course', 'Core', 'STEM Variant', 'ATTR'])
     for course in courses:
       writer.writerow([course] + [ge.replace('@', ' ') for ge in geneds[course]])
 
