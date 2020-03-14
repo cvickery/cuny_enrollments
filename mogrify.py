@@ -139,6 +139,8 @@ def mogrify(input_file, separate_meeting_cols=False):
         section = row.class_section
         class_number = row.class_nbr
         this_component = row.course_component
+        if this_component == 'MSG':
+          continue
         enrollment = row.enrollment_total
         limit = row.enrollment_capacity
         room = row.facility_id if row.facility_id != '' else '—'
