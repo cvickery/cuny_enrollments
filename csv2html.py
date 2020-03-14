@@ -61,7 +61,9 @@ with open(source_csv) as infile:
           requirements[attr][row.course] = courses[row.course]
 # Generate the list of courses for each requirement
 for requirement, courses in requirements.items():
-  print(Requirements[requirement], len(courses.keys()))
+  print(f'<h2>{Requirements[requirement]}</h2>')
+  for course in courses:
+    print(course)
 
 # print(len(courses), 'courses')
 # print('----------------------------------------------')
