@@ -8,10 +8,14 @@ import csv
 from pathlib import Path
 from collections import namedtuple
 from argparse import ArgumentParser
+from term_codes import term_code
 
 parser = ArgumentParser()
-parser.add_argument('-s', '--semester', default='2020.FALL')
+parser.add_argument('-t', '--term', default='1202')
+parser.add_argument('-s', '--session', default='1')
 args = parser.parse_args()
+
+semester, code, semester_name = term_code(args.term, args.session)
 
 source_csv = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
                     reverse=True)[0]
@@ -27,7 +31,21 @@ Requirements = {'EC': 'English Composition',
                 'QNSLANG': 'QC Language',
                 'QNSSCI': 'QC Science',
                 'QNSSYN': 'QC Synthesis',
-                'WRIC': 'Writing Intensive'}
+                'WRIC': 'Writing Intensive',
+                'AP': 'Appreciating and Participating in the Arts',
+                'CV': 'Culture and Values',
+                'NS': 'Natural Science',
+                'NS+L': 'Natural Science with Laboratory',
+                'RL': 'Reading Literature',
+                'SS': 'Analyzing Social Structures',
+                'US': 'United States',
+                'ET': 'European Traditions',
+                'WC': 'World Cultures',
+                'PI': 'Pre-Industrial Society'}
+pathways_requirements = ['EC', 'MQR', 'LPS',
+                         'WCGI', 'USED', 'CE', 'IS', 'SW',
+                         'QNSLIT', 'QNSLANG', 'QNSSCI', 'QNSSYN', 'WRIC']
+plas_requirements = ['AP', 'CV', 'NS', 'NS+L', 'RL', 'SS', 'US', 'ET', 'WC', 'PI', 'WRIC']
 
 Course = namedtuple('Course', 'title sections data rd attrs')
 
@@ -42,7 +60,7 @@ with open(source_csv) as infile:
       Row = namedtuple('Row', [c.replace(' ', '_').replace('#', 'num').lower() for c in line])
       row_len = len(Row._fields)
       continue
-    if line[1] != args.semester:
+    if line[1] != semester:
       continue
     while len(line) < row_len:
       line.append('')
@@ -60,10 +78,14 @@ with open(source_csv) as infile:
         if attr in requirements.keys():
           requirements[attr][row.course] = courses[row.course]
 # Generate the list of courses for each requirement
-for requirement, courses in requirements.items():
+print(f'<h1>Pathways Offerings for {semester_name}')
+for requirement in pathways_requirements:
   print(f'<h2>{Requirements[requirement]}</h2>')
   for course in courses:
     print(course)
+print(f'<h1>Perspectives Offerings for {semester_name}')
+for requirement in plas_requirements:
+  print(f'<h2>{Requirements[requirement]}</h2>')
 
 # print(len(courses), 'courses')
 # print('----------------------------------------------')
