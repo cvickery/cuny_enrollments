@@ -34,8 +34,10 @@ def term_code(term: str, session: str) -> str:
     term_code = f'{year}.{month}0'
     if month == '2':
       term_name = f'{year}.SPR'
+      term_string = f'Spring {year}'
     elif month == '9':
       term_name = f'{year}.FALL'
+      term_string = f'Fall {year}'
     else:
       raise ValueError(f'Unknown term-session: {term}-{session}')
 
@@ -46,37 +48,44 @@ def term_code(term: str, session: str) -> str:
       year += 1
     term_code = f'{year}.10'
     term_name = f'{year}.WIN'
+    term_string = f'Winter {year}'
 
   elif month == '6' and session == '4W1':
     term_code = f'{year}.41'
     term_name = f'{year}.SS1'
+    term_string = f'Summer Short I {year}'
 
   elif month == '6' and session == '4W2':
     term_code = f'{year}.042'
     # This code changed meaning in 2016
     if year < 2016:
       term_name = f'{year}.SL1'
+      term_string = f'Summer Long I {year}'
     else:
       term_name = f'{year}.SS2'
+      term_string = f'Summer Short II {year}'
 
   elif month == '6' and session == '10W':
     # Another change in 2016: this was a ten-week summer session that wasn’t intended to be used,
     # but CHEM 113 does use it.
     term_code = f'{year}.60'
     term_name = f'{year},S10'
+    term_string = f'Summer 10 Week {year}'
 
   elif month == '6' and session == '6W1':
     term_code = f'{year}.61'
     term_name = f'{year}.SL1'
+    term_string = f'Summer Long I {year}'
 
   elif month == '6' and session == '6W2':
     term_code = f'{year}.62'
     term_name = f'{year}.SL2'
+    term_string = f'Summer Long II {year}'
 
   else:
     raise ValueError(f'Unknown term-session: {term}-{session}')
 
-  return term_code, term_name
+  return term_code, term_name, term_string
 
 
 if __name__ == '__main__':
@@ -116,11 +125,11 @@ if __name__ == '__main__':
             ts = (row.term, row.session)
             if ts not in ts_set:
               ts_set.add((row.term, row.session))
-              code, name = term_code(row.term, row.session)
-              print(f'{row.term} {row.session}: {code} <=> {name}')
+              code, name, string = term_code(row.term, row.session)
+              print(f'{row.term} {row.session:>3} : {code:8} : {name:9} : "{string}"')
   else:
-    code, name = term_code(args.term, args.session)
-    print(f'{args.term} {args.session}: {code} <=> {name}')
+    code, name, string = term_code(args.term, args.session)
+    print(f'{args.term} {args.session:>3} : {code:8} : {name:9} : "{string}"')
 
 """ Above is based on the following extract from get_805_enrollments.php
 """
