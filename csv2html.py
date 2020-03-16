@@ -2,10 +2,13 @@
 """ Convert latest Enrollments csv to a web page showing scheduled PLAS and Pathways courses.
 """
 
+import sys
 import csv
 from pathlib import Path
 from collections import namedtuple
 from argparse import ArgumentParser
+from datetime import date
+
 from term_codes import term_code
 
 parser = ArgumentParser()
@@ -13,7 +16,9 @@ parser.add_argument('-t', '--term', default='1202')
 parser.add_argument('-s', '--session', default='1')
 args = parser.parse_args()
 
-semester, code, semester_name = term_code(args.term, args.session)
+gen_date = date.today().strftime('%Y-%m-%d')
+code, semester, semester_name = term_code(args.term, args.session)
+html_file = open(f'offered_gened_{semester}_as_of_{gen_date}.html', 'w')
 
 enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
                          reverse=True)[0]
@@ -78,7 +83,7 @@ with open(enrollment_file) as infile:
       Row = namedtuple('Row', [c.replace(' ', '_').replace('#', 'num').lower() for c in line])
       row_len = len(Row._fields)
       continue
-    if line[1] != code:
+    if line[1] != semester:
       continue
     while len(line) < row_len:
       line.append('')
@@ -90,18 +95,26 @@ with open(enrollment_file) as infile:
     all_courses[row.course].data[0] += int(row.enrollment)
     all_courses[row.course].data[1] += int(row.limit)
 
+    # Update Pathways dicts
     if row.rd in pathways_requirements:
       offered_pathways_courses[row.rd].add(row.course)
     for attr in row.attr.split(','):
       attr = attr.strip()
       if attr in pathways_requirements:
         offered_pathways_courses[attr].add(row.course)
+      if attr in plas_requirements:  # WRIC will match here
+        offered_plas_courses[attr].add(row.course)
+
+    # Update PLAS dicts
+    if row.course in all_plas_courses.keys():
+      for req in all_plas_courses[row.course]:
+        offered_plas_courses[req].add(row.course)
 
 # Generate the list of courses for each requirement
-print(f'<h1>Pathways Offerings for {semester_name}')
+print(f'<h1>Pathways Offerings for {semester_name}', file=html_file)
 for requirement in pathways_requirements:
-  print(f'<h2>{Requirements[requirement]} (<em>{len(offered_pathways_courses[requirement])} '
-        f'courses</em>)</h2>')
+  print(f'<h2>{Requirements[requirement]} (<em>{len(offered_pathways_courses[requirement])}'
+        f' courses</em>)</h2>', file=html_file)
   for course in sorted(offered_pathways_courses[requirement]):
     title = all_courses[course].title
     num_sections = len(all_courses[course].sections)
@@ -113,14 +126,21 @@ for requirement in pathways_requirements:
     except ZeroDivisionError:
       per_cent = ''
     print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
-          f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>')
+          f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
 
-print(f'<h1>Perspectives Offerings for {semester_name}')
+print(f'<h1>Perspectives Offerings for {semester_name}', file=html_file)
 for requirement in plas_requirements:
-  print(f'<h2>{Requirements[requirement]}</h2>')
-
-# print(len(courses), 'courses')
-# print('----------------------------------------------')
-# print(requirements)
-# print('----------------------------------------------')
-# print(courses)
+  print(f'<h2>{Requirements[requirement]} (<em>{len(offered_plas_courses[requirement])}'
+        f' courses</em>)</h2>', file=html_file)
+  for course in sorted(offered_plas_courses[requirement]):
+    title = all_courses[course].title
+    num_sections = len(all_courses[course].sections)
+    suffix = '' if num_sections == 1 else 's'
+    enrollment = all_courses[course].data[0]
+    limit = all_courses[course].data[1]
+    try:
+      per_cent = f'({100 * enrollment / limit:.0f}%)'
+    except ZeroDivisionError:
+      per_cent = ''
+    print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
+          f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
