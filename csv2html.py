@@ -23,7 +23,7 @@ html_file = open(f'offered_gened_{semester}_as_of_{gen_date}.html', 'w')
 enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
                          reverse=True)[0]
 Requirements = {'EC': 'English Composition',
-                'MQR': 'Mathematics and Quatnitative Reasoning',
+                'MQR': 'Mathematics and Quantitative Reasoning',
                 'LPS': 'Life and Physical Sciences',
                 'WCGI': 'World Cultures and Global Issues',
                 'USED': 'United States Experience in its Diversity',
@@ -111,7 +111,43 @@ with open(enrollment_file) as infile:
         offered_plas_courses[req].add(row.course)
 
 # Generate the list of courses for each requirement
-print(f'<h1>Pathways Offerings for {semester_name}', file=html_file)
+print(f"""
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>{semester_name} GenEd Courses</title>
+    <style>
+      body {{
+        padding: 1em;
+      }}
+      .course-list {{
+          column-count: 3;
+          column-gap: 1em;
+          column-rule: 1px solid #ccc;
+      }}
+      h1 {{
+        text-align:center;
+      }}
+      @media print {{
+        h1 {{
+          page-break-before: always;
+        }}
+
+        h2 {{
+          break-after: avoid;
+        }}
+
+        .course-list, p {{
+          font-size: 8pt;
+        }}
+      }}
+    </style
+  </head>
+  <body>
+    <h1>Pathways Offerings for {semester_name}</h1><hr>
+    <section class="course-list">
+""", file=html_file)
 for requirement in pathways_requirements:
   print(f'<h2>{Requirements[requirement]} (<em>{len(offered_pathways_courses[requirement])}'
         f' courses</em>)</h2>', file=html_file)
@@ -128,7 +164,11 @@ for requirement in pathways_requirements:
     print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
           f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
 
-print(f'<h1>Perspectives Offerings for {semester_name}', file=html_file)
+print(f"""
+    </section>
+    <h1>Perspectives Offerings for {semester_name}</h1><hr>
+    <section class="course-list">
+""", file=html_file)
 for requirement in plas_requirements:
   print(f'<h2>{Requirements[requirement]} (<em>{len(offered_plas_courses[requirement])}'
         f' courses</em>)</h2>', file=html_file)
@@ -144,3 +184,8 @@ for requirement in plas_requirements:
       per_cent = ''
     print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
           f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
+print("""
+    </section>
+  </body>
+</html>
+""", file=html_file)
