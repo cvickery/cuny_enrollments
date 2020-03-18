@@ -22,6 +22,9 @@ html_file = open(f'offered_gened_{semester}_as_of_{gen_date}.html', 'w')
 
 enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
                          reverse=True)[0]
+asof = enrollment_file.name[0:10]
+asof_date = date(*[int(x) for x in asof.split('-')]).strftime('%B %d, %Y')
+
 Requirements = {'EC': 'English Composition',
                 'MQR': 'Mathematics and Quantitative Reasoning',
                 'LPS': 'Life and Physical Sciences',
@@ -116,7 +119,7 @@ print(f"""
 <html>
   <head>
     <meta charset="utf-8"/>
-    <title>{semester_name} GenEd Courses</title>
+    <title>{semester_name} GenEd Courses {asof}</title>
     <style>
       body {{
         padding: 1em;
@@ -126,11 +129,12 @@ print(f"""
           column-gap: 1em;
           column-rule: 1px solid #ccc;
       }}
-      h1 {{
+      h1, h1+p {{
         text-align:center;
+        margin: 0;
       }}
       @media print {{
-        h1 {{
+        h1:not(:first-of-type) {{
           page-break-before: always;
         }}
 
@@ -145,7 +149,9 @@ print(f"""
     </style
   </head>
   <body>
-    <h1>Pathways Offerings for {semester_name}</h1><hr>
+    <h1>Pathways Offerings for {semester_name}</h1>
+    <p><em>CUNYfirst data as of {asof_date}</em></p>
+    <hr>
     <section class="course-list">
 """, file=html_file)
 for requirement in pathways_requirements:
@@ -166,7 +172,9 @@ for requirement in pathways_requirements:
 
 print(f"""
     </section>
-    <h1>Perspectives Offerings for {semester_name}</h1><hr>
+    <h1>Perspectives Offerings for {semester_name}</h1>
+    <p><em>CUNYfirst data as of {asof_date}</em></p>
+    <hr>
     <section class="course-list">
 """, file=html_file)
 for requirement in plas_requirements:
