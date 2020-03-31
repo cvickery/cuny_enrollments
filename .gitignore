@@ -3,3 +3,5 @@
 /downloads/
 *.csv
 /.DS_Store
+/new_files/
+/storage.json
