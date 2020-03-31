@@ -110,7 +110,7 @@ courses = sorted(courses, key=lambda c: discipline_part(c))
 # Generate the CSV output file.
 m, d, y = (int(x) for x in sysdate.split('/'))
 date_str = date(y, m, d).strftime('%Y-%m-%d')
-outfile_name = f'./archive/{date_str}_gened.csv'
+outfile_name = f'./new_files/{date_str}_gened.csv'
 print(f'Generating {outfile_name}')
 with open(outfile_name, 'w') as outfile:
   writer = csv.writer(outfile)

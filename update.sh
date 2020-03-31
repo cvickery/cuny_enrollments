@@ -21,4 +21,8 @@ fi
 
 # (re-)generate latest sheet, with separate meeting day columns
 ./mogrify.py -s
+# Again, with combined meeting days column
 ./mogrify.py
+
+# Copy the new files to Google Drive, and archive them
+./to_drive.py
