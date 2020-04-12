@@ -2,10 +2,11 @@
 """ Transform CUNY enrollment query into something useful.
 """
 
-import sys
 import csv
 import codecs
+import os
 import re
+import sys
 
 from datetime import date
 from typing import Dict, Any
@@ -14,48 +15,16 @@ from collections import namedtuple
 from pathlib import Path
 
 from term_codes import term_code
-from gened import gened_courses
+
+# Side effect of importing from the gened module is to generate a new gened.csv file.
+from gened import gened_courses, rds, GenEd
 
 csv.field_size_limit(sys.maxsize)
 
 days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-rds = {'RECR': 'EC',
-       'RLPR': 'LPS',
-       'RMQR': 'MQR',
-       'FCER': 'CE',
-       'FISR': 'IS',
-       'FUSR': 'USED',
-       'FSWR': 'SW',
-       'FWGR': 'WGCI'}
 
 # Generate dict of GenEd courses and the requirements they satisfy
-GenEd = namedtuple('GenEd', 'rd variant attr')
 no_gened = GenEd._make(['', '', ''])
-# gened_courses = dict()
-# that = None
-# # Get latest  QNS_GENED csv from downloads and say that that's that.
-# them = Path().glob('./downloads/*GENED*.csv')
-# for this in them:
-#   if that is None or this.stat().st_mtime > that.stat().st_mtime:
-#     that = this
-# if that is not None:
-#   print(f'Using {that.name}')
-#   with open(that) as gened_file:
-#     cols = None
-#     reader = csv.reader(gened_file)
-#     for line in reader:
-#       if cols is None:
-#         cols = ([col.lower().replace(' ', '_') for col in line])
-#         GenEd_Row = namedtuple('GenEd_Row', cols)
-#       else:
-#         row = GenEd_Row._make(line)
-#         course = f'{row.subject.strip()} {row.catalog.strip()}'
-#         copts = [copt for copt in row.copt.split(', ') if copt.startswith('QNS')]
-#         if len(copts) == 0:
-#           copts = ['—']
-#         gened_courses[course] = GenEd._make([row.designation, row.variant, ',@'.join(copts)])
-# else:
-#   print('NOTE: GenEd info missing.')
 
 
 def numeric_part(catnum_str):
@@ -122,7 +91,7 @@ def mogrify(input_file, separate_meeting_cols=False):
             y += 2000
           # Include Separate/Combined info in file name
           sc_info = 'separate' if separate_meeting_cols else 'combined'
-          output_file = f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sc_info}.csv'
+          output_file = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sc_info}.csv')
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
@@ -178,27 +147,31 @@ def mogrify(input_file, separate_meeting_cols=False):
                          f' {gened.rd} {gened.variant} {gened.attr}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
-  print(f'Generating {output_file}')
-  with open(output_file, 'w') as outfile:
-    writer = csv.writer(outfile)
-    if separate_meeting_cols:
-      writer.writerow(['Semester Code', 'Semester Name',
-                       'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
-                       'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
-                       'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
-                       'Role', 'RD', 'STEM Variant', 'ATTR'])
-    else:
-      writer.writerow(['Semester Code', 'Semester Name',
-                       'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
-                      'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
-                       'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'STEM Variant', 'ATTR'])
-    for course in courses:
-      row = course.split()
-      row = [col.replace('@', ' ').replace('"', '') for col in row]
-      writer.writerow(row)
+  archive_file = Path('./archive', output_file.name)
+  if archive_file.exists and not os.getenv('DEVELOPMENT'):
+    print(f'{archive_file} already exists', file=sys.stderr)
+  else:
+    print(f'Generating {output_file}')
+    with open(output_file, 'w') as outfile:
+      writer = csv.writer(outfile)
+      if separate_meeting_cols:
+        writer.writerow(['Semester Code', 'Semester Name',
+                         'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
+                         'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
+                         'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
+                         'Role', 'RD', 'STEM Variant', 'ATTR'])
+      else:
+        writer.writerow(['Semester Code', 'Semester Name',
+                         'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
+                        'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
+                         'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'STEM Variant', 'ATTR'])
+      for course in courses:
+        row = course.split()
+        row = [col.replace('@', ' ').replace('"', '') for col in row]
+        writer.writerow(row)
 
-  for status, count in status_counts.items():
-    print(f'{count:6,} {status}', file=sys.stderr)
+    for status, count in status_counts.items():
+      print(f'{count:6,} {status}', file=sys.stderr)
 
 
 if __name__ == '__main__':
