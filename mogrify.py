@@ -92,6 +92,7 @@ def mogrify(input_file, separate_meeting_cols=False):
           # Include Separate/Combined info in file name
           sep_comb = 'separate' if separate_meeting_cols else 'combined'
           outfile = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sep_comb}.csv')
+          print(f'debug: {outfile}')
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
@@ -148,7 +149,7 @@ def mogrify(input_file, separate_meeting_cols=False):
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
   archive_file = Path('./archive', outfile.name)
-  if archive_file.exists and not os.getenv('DEVELOPMENT'):
+  if archive_file.exists() and not os.getenv('DEVELOPMENT'):
     print(f'mogrify.py: {archive_file} already exists', file=sys.stderr)
   else:
     print(f'Generating {outfile}')
