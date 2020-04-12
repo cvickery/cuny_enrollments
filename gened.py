@@ -121,7 +121,7 @@ m, d, y = (int(x) for x in sysdate.split('/'))
 date_str = date(y, m, d).strftime('%Y-%m-%d')
 outfile = Path(f'./new_files/{date_str}_gened.csv')
 archive_file = Path('./archive', outfile.name)
-if archive_file.exists()s and not os.getenv('DEVELOPMENT'):
+if archive_file.exists() and not os.getenv('DEVELOPMENT'):
   print(f'gened.py: {archive_file} already exists', file=sys.stderr)
 else:
   print(f'Generating {outfile.name}')
