@@ -63,7 +63,7 @@ def mogrify(input_file, separate_meeting_cols=False):
   courses = []
   status_counts: Dict[str, int] = dict()
   cols = None
-  output_file = None
+  outfile = None
 
   # Force the input file to be valid utf-8 text.
   with codecs.open(input_file, 'r', encoding='utf-8', errors='replace') as infile:
@@ -83,15 +83,15 @@ def mogrify(input_file, separate_meeting_cols=False):
         if row.institution != 'QNS01':
           continue
 
-        if output_file is None:
+        if outfile is None:
           # Use the query SYSDATE for the output file name
           m, d, y = (int(col) for col in row.sysdate.split('/'))
           # Have to assume 21st century
           if y < 100:
             y += 2000
           # Include Separate/Combined info in file name
-          sc_info = 'separate' if separate_meeting_cols else 'combined'
-          output_file = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sc_info}.csv')
+          sep_comb = 'separate' if separate_meeting_cols else 'combined'
+          outfile = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sep_comb}.csv')
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
@@ -147,13 +147,13 @@ def mogrify(input_file, separate_meeting_cols=False):
                          f' {gened.rd} {gened.variant} {gened.attr}')
   courses.sort(key=lambda course: numeric_part(course[8:14]))
   courses.sort(key=lambda course: course[0:7].strip())
-  archive_file = Path('./archive', output_file.name)
+  archive_file = Path('./archive', outfile.name)
   if archive_file.exists and not os.getenv('DEVELOPMENT'):
-    print(f'{archive_file} already exists', file=sys.stderr)
+    print(f'mogrify.py: {archive_file} already exists', file=sys.stderr)
   else:
-    print(f'Generating {output_file}')
-    with open(output_file, 'w') as outfile:
-      writer = csv.writer(outfile)
+    print(f'Generating {outfile}')
+    with open(outfile, 'w') as csv_file:
+      writer = csv.writer(csv_file)
       if separate_meeting_cols:
         writer.writerow(['Semester Code', 'Semester Name',
                          'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
