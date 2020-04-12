@@ -92,7 +92,6 @@ def mogrify(input_file, separate_meeting_cols=False):
           # Include Separate/Combined info in file name
           sep_comb = 'separate' if separate_meeting_cols else 'combined'
           outfile = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments_{sep_comb}.csv')
-          print(f'debug: {outfile}')
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
         if row.class_status not in status_counts.keys():
           status_counts[row.class_status] = 0
