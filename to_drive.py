@@ -23,6 +23,9 @@ from oauth2client import file, client, tools
 
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
+archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
+combined_sheet_id = '1g36HsFjtf-_emG_4t36HF7S8O1TMS7AsvYBoPUeIiOY'
+
 SCOPES = 'https://www.googleapis.com/auth/drive.file'
 store = file.Storage('storage.json')
 creds = store.get()
@@ -45,11 +48,32 @@ if len(new_files) == 0:
 for new_file in new_files:
   file_metadata = {
       'name': new_file.name,
-      'parents': ['1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'],  # id of my Google Drive archives folder
+      'parents': [archive_dir_id],  # id of my Google Drive archives folder
       'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert csv to Google Sheet on upload
   }
   file_name = f'{from_dir}/{new_file.name}'
   result = DRIVE.files().create(body=file_metadata, media_body=file_name).execute()
-  print(f'Uploaded {new_file.name} {result["mimeType"]}')
+  print(f'Uploaded {new_file.name}')
+
+  # If this is a "combined" enrollments sheet, update the contents of "latest_enrollments_combined"
+  if 'combined' in new_file.name:
+    # try:
+    # First retrieve the existing file from the API.
+    latest_file = DRIVE.files().get(fileId=combined_sheet_id).execute()
+
+    # File's new content.
+    # media_body = MediaFileUpload('latest_enrollments_combined',
+    #                              mimetype=latest_file['mimeType'],
+    #                              resumable=True)
+
+    # Send the request to the API.
+    result = DRIVE.files().update(fileId=combined_sheet_id,
+                                  body=latest_file,
+                                  newRevision=True,
+                                  media_body=file_name).execute()
+    print(f'Uploaded {new_file.name} to latest_enrollments_combined')
+    # except Error as error:
+    #   print(f'Error updating latest_enrollments_combined: {error}', file=sys.stderr)
+
   # And move it to the archive folder.
   new_file.rename(f'{to_dir}/{new_file.name}')
