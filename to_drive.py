@@ -65,7 +65,7 @@ for new_file in new_files:
     # Do the update
     result = service.files().update(fileId=combined_sheet_id,
                                     media_body=media_body).execute()
-    print(f'Uploaded {new_file.resolve()} to {result["name"]}')
+    print(f'Updated {result["name"]} from {new_file.name}')
 
   # And move it to the archive folder.
   new_file.rename(f'{to_dir}/{new_file.name}')
