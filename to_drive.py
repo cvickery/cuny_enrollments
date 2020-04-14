@@ -18,6 +18,7 @@ from pathlib import Path
 import argparse
 
 from apiclient.discovery import build
+from apiclient.http import MediaFileUpload
 from httplib2 import Http
 from oauth2client import file, client, tools
 
@@ -32,7 +33,7 @@ creds = store.get()
 if not creds or creds.invalid:
     flow = client.flow_from_clientsecrets('/Users/vickery/Google/client_id.json', scope=SCOPES)
     creds = tools.run_flow(flow, store, flags)
-DRIVE = build('drive', 'v3', http=creds.authorize(Http()))
+service = build('drive', 'v3', http=creds.authorize(Http()))
 
 # The 'new_files' and 'archive' directories are subdirectories of my 'CUNY_Enrollments' project dir.
 proj_dir = '/Users/vickery/CUNY_Enrollments'
@@ -52,28 +53,19 @@ for new_file in new_files:
       'mimeType': 'application/vnd.google-apps.spreadsheet'  # Convert csv to Google Sheet on upload
   }
   file_name = f'{from_dir}/{new_file.name}'
-  result = DRIVE.files().create(body=file_metadata, media_body=file_name).execute()
+  result = service.files().create(body=file_metadata, media_body=file_name).execute()
   print(f'Uploaded {new_file.name}')
 
   # If this is a "combined" enrollments sheet, update the contents of "latest_enrollments_combined"
   if 'combined' in new_file.name:
-    # try:
-    # First retrieve the existing file from the API.
-    latest_file = DRIVE.files().get(fileId=combined_sheet_id).execute()
-
     # File's new content.
-    # media_body = MediaFileUpload('latest_enrollments_combined',
-    #                              mimetype=latest_file['mimeType'],
-    #                              resumable=True)
-
-    # Send the request to the API.
-    result = DRIVE.files().update(fileId=combined_sheet_id,
-                                  body=latest_file,
-                                  newRevision=True,
-                                  media_body=file_name).execute()
-    print(f'Uploaded {new_file.name} to latest_enrollments_combined')
-    # except Error as error:
-    #   print(f'Error updating latest_enrollments_combined: {error}', file=sys.stderr)
+    media_body = MediaFileUpload(new_file.resolve(),
+                                 mimetype='application/vnd.google-apps.spreadsheet',
+                                 resumable=True)
+    # Do the update
+    result = service.files().update(fileId=combined_sheet_id,
+                                    media_body=media_body).execute()
+    print(f'Uploaded {new_file.resolve()} to {result["name"]}')
 
   # And move it to the archive folder.
   new_file.rename(f'{to_dir}/{new_file.name}')
