@@ -27,7 +27,7 @@ flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
 combined_sheet_id = '1g36HsFjtf-_emG_4t36HF7S8O1TMS7AsvYBoPUeIiOY'
 
-SCOPES = 'https://www.googleapis.com/auth/drive.file'
+SCOPES = 'https://www.googleapis.com/auth/drive'
 store = file.Storage('storage.json')
 creds = store.get()
 if not creds or creds.invalid:
