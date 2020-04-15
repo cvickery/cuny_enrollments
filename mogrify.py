@@ -104,7 +104,7 @@ def mogrify(input_file, separate_meeting_cols=False):
         career = row.career
         primary_component = row.primary_component
         has_fees = row.fees_exist
-        is_ztc = 'Y' if row.crse_attr == 'OERS' else '—'
+        is_ztc = 'Y' if 'OERS' in row.attributes else '—'
         section = row.class_section
         class_number = row.class_nbr
         this_component = row.course_component
@@ -112,7 +112,7 @@ def mogrify(input_file, separate_meeting_cols=False):
           continue
         enrollment = row.enrollment_total
         limit = row.enrollment_capacity
-        room = row.facility_id if row.facility_id != '' else '—'
+        room = row.room if row.room != '' else '—'
         mode = row.instruction_mode
         combined, separate = make_meetings_str(row.mtg_start, row.mtg_end,
                                                [row.mon, row.tues, row.wed, row.thurs,
@@ -159,12 +159,13 @@ def mogrify(input_file, separate_meeting_cols=False):
                          'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
                          'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
                          'Room', 'First', 'Second', 'Third', 'Mode', 'Name',
-                         'Role', 'RD', 'STEM Variant', 'ATTR'])
+                         'Role', 'RD', 'STEM Variant', 'GenEd Attributes'])
       else:
         writer.writerow(['Semester Code', 'Semester Name',
                          'Course', 'Title', 'Level', 'Has Fees', 'OERS', 'Primary Component',
                         'This Component', 'Class #', 'Section', 'Enrollment', 'Limit',
-                         'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'STEM Variant', 'ATTR'])
+                         'Room', 'Schedule', 'Mode', 'Name', 'Role', 'RD', 'STEM Variant',
+                         'GenEd Attributes'])
       for course in courses:
         row = course.split()
         row = [col.replace('@', ' ').replace('"', '') for col in row]

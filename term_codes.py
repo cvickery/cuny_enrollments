@@ -56,7 +56,7 @@ def term_code(term: str, session: str) -> str:
     term_string = f'Summer Short I {year}'
 
   elif month == '6' and session == '4W2':
-    term_code = f'{year}.042'
+    term_code = f'{year}.42'
     # This code changed meaning in 2016
     if year < 2016:
       term_name = f'{year}.SL1'
