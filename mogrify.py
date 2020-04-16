@@ -132,7 +132,7 @@ def mogrify(input_file, separate_meeting_cols=False):
         title = row.class_title.replace('\'', '’')
         career = row.career
         primary_component = row.primary_component
-        has_fees = row.fees_exist
+        has_fees = row.fees_exist if row.fees_exist == 'Y' else ''
         is_ztc = 'Y' if 'OERS' in row.attributes else ''
         section = row.class_section
         class_number = row.class_nbr
@@ -224,7 +224,7 @@ def mogrify(input_file, separate_meeting_cols=False):
     with open(outfile, 'w') as csv_file:
       writer = csv.writer(csv_file)
       writer.writerow(['Semester Code', 'Semester Name',
-                       'Course', 'Title', 'Level', 'Has Fees', 'OERS?', 'Primary Component',
+                       'Course', 'Title', 'Level', 'Has Fees?', 'OERS?', 'Primary Component',
                        'This Component', 'Class #', 'Class Status', 'Section', 'Enrollment',
                        'Limit', 'Schedule', 'Mode', 'Instructor', 'GenEd RD', 'STEM Variant?',
                        'GenEd Attribute'])
