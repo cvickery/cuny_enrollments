@@ -25,7 +25,7 @@ from oauth2client import file, client, tools
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
 archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
-combined_sheet_id = '1g36HsFjtf-_emG_4t36HF7S8O1TMS7AsvYBoPUeIiOY'
+latest_enrollments_id = '1g36HsFjtf-_emG_4t36HF7S8O1TMS7AsvYBoPUeIiOY'
 
 SCOPES = 'https://www.googleapis.com/auth/drive'
 store = file.Storage('storage.json')
@@ -56,14 +56,14 @@ for new_file in new_files:
   result = service.files().create(body=file_metadata, media_body=file_name).execute()
   print(f'Uploaded {new_file.name}')
 
-  # If this is a "combined" enrollments sheet, update the contents of "latest_enrollments_combined"
-  if 'combined' in new_file.name:
+  # If this is an enrollments sheet, update the contents of "latest_enrollments"
+  if 'enrollments' in new_file.name:
     # File's new content.
     media_body = MediaFileUpload(new_file.resolve(),
                                  mimetype='application/vnd.google-apps.spreadsheet',
                                  resumable=True)
     # Do the update
-    result = service.files().update(fileId=combined_sheet_id,
+    result = service.files().update(fileId=latest_enrollments_id,
                                     media_body=media_body).execute()
     print(f'Updated {result["name"]} from {new_file.name}')
 

@@ -19,9 +19,7 @@ then
   /usr/local/bin/lftp -f ./getcunyrc
 fi
 
-# (re-)generate latest sheet, with separate meeting day columns
-./mogrify.py -s
-# Again, with combined meeting days column
+# (re-)generate latest enrollment and gened sheets
 ./mogrify.py
 
 # Copy the new files to Google Drive, and archive them
