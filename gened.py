@@ -74,8 +74,8 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
       if course.startswith('RC') or course.startswith('FC'):
         # Ignore exemption pseudo-courses
         continue
-      rd = '@'
-      stem_variant = '@'
+      rd = ''
+      stem_variant = ''
       if row.designation in rds.keys():
         rd = rds[row.designation]
         if float(row.min_units) > 3:
@@ -110,7 +110,7 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
         continue  # inactive
 for key in _all_courses.keys():
   course, rd, variant, attr = _all_courses[key]
-  if rd != '@' or attr != '':
+  if rd != '' or attr != '':
     gened_courses[course] = GenEd._make([rd, variant, attr.replace(' ', '@')])
 
 courses = sorted(gened_courses.keys(), key=lambda c: _numeric_part(c))
@@ -127,6 +127,6 @@ else:
   print(f'Generating {outfile.name}')
   with open(outfile, 'w') as csv_file:
     writer = csv.writer(csv_file)
-    writer.writerow(['Course', 'Core', 'STEM Variant', 'ATTR'])
+    writer.writerow(['Course', 'Core', 'STEM Variant', 'GenEd Attribute'])
     for course in courses:
       writer.writerow([course] + [ge.replace('@', ' ') for ge in gened_courses[course]])
