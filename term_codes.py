@@ -26,6 +26,8 @@ def term_code(term: str, session: str) -> str:
    6  6W1   61 Summer 2 Short   SS2
    6  6W2   62 Summer 2 Long    SL2
    9    1   90 Fall             FA
+   *CUNYfirst used to associate Winter with previous Fall (9 for the month). In that case add 1
+   to the year.
   """
   year = 1900 + 100 * int(term[0]) + int(term[1:3])
   month = f'{term[3]}'
