@@ -71,7 +71,7 @@ def term_code(term: str, session: str) -> str:
     # Another change in 2016: this was a ten-week summer session that wasn’t intended to be used,
     # but CHEM 113 does use it.
     term_code = f'{year}.60'
-    term_name = f'{year},S10'
+    term_name = f'{year}.S10'
     term_string = f'Summer 10 Week {year}'
 
   elif month == '6' and session == '6W1':
