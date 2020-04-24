@@ -10,22 +10,23 @@ from pathlib import Path
 
 def term_code(term: str, session: str) -> str:
   """ Convert CUNYfirst term code (CYYM) and session code (1, WIN, 4W1, etc) into a QC term_code
-      string, YYYY.TT, and term name. The idea is that the term code strings are in chronological
-      order.
+      string "YYYY.TT", and term name string, "YYYY.Abbr". The idea is that the term code strings
+      are in chronological order but the term name strings are more descriptive.
+
       C is the century: 0 for 1900's and 1 for 2000's
       YY is the year in the century
       M is a month number, interpretation depends on session code (SSS)
 
 
-   M  SSS   TT Name             Abbr
-   2* WIN   10 Winter           WIN
-   2    1   20 Spring           SP
-   6  4W1   41 Summer 1 Short   SS1
-   6  4W2   42 Summer 1 Long    SL1
-   6  10W   60 Summer 10 Week   S10
-   6  6W1   61 Summer 2 Short   SS2
-   6  6W2   62 Summer 2 Long    SL2
-   9    1   90 Fall             FA
+   M  SSS  Full Name       TT  Abbr
+   2* WIN  Winter          10  WIN
+   2    1  Spring          20  SPR
+   6  4W1  Summer 1 Short  41  SS1
+   6  4W2  Summer 1 Long   42  SL1
+   6  10W  Summer 10 Week  60  S10
+   6  6W1  Summer 2 Short  61  SS2
+   6  6W2  Summer 2 Long   62  SL2
+   9    1  Fall            90  FALL
    *CUNYfirst used to associate Winter with previous Fall (9 for the month). In that case add 1
    to the year.
   """
