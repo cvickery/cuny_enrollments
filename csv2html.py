@@ -12,8 +12,9 @@ from datetime import date
 from term_codes import term_code
 
 parser = ArgumentParser()
-parser.add_argument('-t', '--term', default='1202')
+parser.add_argument('-d', '--debug', action='store_true')
 parser.add_argument('-s', '--session', default='1')
+parser.add_argument('-t', '--term', default='1202')
 args = parser.parse_args()
 
 gen_date = date.today().strftime('%Y-%m-%d')
@@ -85,6 +86,8 @@ with open(enrollment_file) as infile:
     if Row is None:
       Row = namedtuple('Row', [c.replace(' ', '_').replace('#', 'num').lower() for c in line])
       row_len = len(Row._fields)
+      if args.debug:
+        print(Row._fields, file=sys.stderr)
       continue
     if line[1] != semester:
       continue
@@ -101,7 +104,7 @@ with open(enrollment_file) as infile:
     # Update Pathways dicts
     if row.rd in pathways_requirements:
       offered_pathways_courses[row.rd].add(row.course)
-    for attr in row.attr.split(','):
+    for attr in row.gened_attributes.split(','):
       attr = attr.strip()
       if attr in pathways_requirements:
         offered_pathways_courses[attr].add(row.course)
