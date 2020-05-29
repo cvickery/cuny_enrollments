@@ -24,7 +24,7 @@ csv.field_size_limit(sys.maxsize)
 days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 # Generate dict of GenEd courses and the requirements they satisfy
-no_gened = GenEd._make(['', '', ''])
+no_gened = GenEd._make(['', '', '', ''])
 
 ClassInfo = namedtuple('ClassInfo', 'semester_code semester_name course_str title career has_fees '
                                     'is_ztc primary_component this_component class_number '

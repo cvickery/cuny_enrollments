@@ -24,7 +24,7 @@ rds = {'RECR': 'EC',
        'FSWR': 'SW',
        'FWGR': 'WCGI'}
 
-GenEd = namedtuple('GenEd', 'rd variant attr')
+GenEd = namedtuple('GenEd', 'title rd variant attr')
 gened_courses = dict()  # courses with a GenEd RD or Attribute
 
 # Privates
@@ -71,6 +71,7 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
       row = Row._make(line)
       sysdate = row.sysdate
       course = f'{row.subject.strip()} {row.catalog.strip()}'
+      title = row.long_title.title()
       if course.startswith('RC') or course.startswith('FC'):
         # Ignore exemption pseudo-courses
         continue
@@ -82,7 +83,7 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
            stem_variant = 'Y'
       course_id = int(row.course_id)
       # print(f'{course_id:06}, {course} {rd}')
-      _all_courses[course_id] = [course, rd, stem_variant, '']
+      _all_courses[course_id] = [course, title, rd, stem_variant, '']
 
 # Get latest attr sheet, and extract info by course_id
 that = None
@@ -105,13 +106,13 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
       course_id = int(row.course_id)
       attrs = row.attr_value.replace('COPT, ', '').replace('COPT', '').strip()
       try:
-        _all_courses[course_id][3] = attrs
+        _all_courses[course_id][4] = attrs
       except KeyError as ke:
         continue  # inactive
 for key in _all_courses.keys():
-  course, rd, variant, attr = _all_courses[key]
+  course, title, rd, variant, attr = _all_courses[key]
   if rd != '' or attr != '':
-    gened_courses[course] = GenEd._make([rd, variant, attr.replace(' ', '@')])
+    gened_courses[course] = GenEd._make([title, rd, variant, attr.replace(' ', '@')])
 
 courses = sorted(gened_courses.keys(), key=lambda c: _numeric_part(c))
 courses = sorted(courses, key=lambda c: _discipline_part(c))
@@ -124,9 +125,9 @@ archive_file = Path('./archive', outfile.name)
 if archive_file.exists() and not os.getenv('DEVELOPMENT'):
   print(f'gened.py: {archive_file} already exists', file=sys.stderr)
 else:
-  print(f'Generating {outfile.name}')
+  print(f'Generating {outfile.resolve()}')
   with open(outfile, 'w') as csv_file:
     writer = csv.writer(csv_file)
-    writer.writerow(['Course', 'Core', 'STEM Variant', 'GenEd Attribute'])
+    writer.writerow(['Course', 'Title', 'Core', 'STEM Variant', 'GenEd Attribute'])
     for course in courses:
       writer.writerow([course] + [ge.replace('@', ' ') for ge in gened_courses[course]])
