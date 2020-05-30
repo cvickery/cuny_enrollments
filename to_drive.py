@@ -19,10 +19,10 @@ import sys
 from pathlib import Path
 import argparse
 
-# from apiclient.discovery import build
-# from apiclient.http import MediaFileUpload
-# from httplib2 import Http
-# from oauth2client import file, client, tools
+from apiclient.discovery import build
+from apiclient.http import MediaFileUpload
+from httplib2 import Http
+from oauth2client import file, client, tools
 
 # Get all the csv files in the new_files directory
 
