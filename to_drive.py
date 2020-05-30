@@ -12,16 +12,37 @@
     (The client_id.json file has to be kept secret so that a malicious user doesn't use it to sign
     a malicious app.)
 
+    Update: 2020-05-29
+    When there is a new gened csv, copy it to the old Senate website.
 """
 import sys
 from pathlib import Path
 import argparse
 
-from apiclient.discovery import build
-from apiclient.http import MediaFileUpload
-from httplib2 import Http
-from oauth2client import file, client, tools
+# from apiclient.discovery import build
+# from apiclient.http import MediaFileUpload
+# from httplib2 import Http
+# from oauth2client import file, client, tools
 
+# Get all the csv files in the new_files directory
+
+# The 'new_files' and 'archive' directories are subdirectories of my 'CUNY_Enrollments' project dir.
+proj_dir = '/Users/vickery/CUNY_Enrollments'
+from_dir = f'{proj_dir}/new_files'
+to_dir = f'{proj_dir}/archive'
+
+new_files = [file for file in Path(from_dir).glob('*.csv')]
+if len(new_files) == 0:
+  sys.exit('No new files to upload.')
+
+# Check for gened.csv
+for new_file in new_files:
+  if new_file.name.endswith('gened.csv'):
+    target = Path('/Library/Server/Web/Data/Sites/senate.qc.cuny.edu/'
+                  'Curriculum/Approved_Courses/gened_courses.csv')
+    target.unlink()
+    new_file.link_to(target)
+    print(f'Linked {new_file.name} to Senate website as {target.name}')
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
 archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
@@ -34,16 +55,6 @@ if not creds or creds.invalid:
     flow = client.flow_from_clientsecrets('/Users/vickery/Google/client_id.json', scope=SCOPES)
     creds = tools.run_flow(flow, store, flags)
 service = build('drive', 'v3', http=creds.authorize(Http()))
-
-# The 'new_files' and 'archive' directories are subdirectories of my 'CUNY_Enrollments' project dir.
-proj_dir = '/Users/vickery/CUNY_Enrollments'
-from_dir = f'{proj_dir}/new_files'
-to_dir = f'{proj_dir}/archive'
-
-# Get all the csv files in the new_files directory
-new_files = [file for file in Path(from_dir).glob('*.csv')]
-if len(new_files) == 0:
-  sys.exit('No new files to upload.')
 
 # Upload each new file to Google Drive
 for new_file in new_files:
