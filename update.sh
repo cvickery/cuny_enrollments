@@ -14,7 +14,7 @@ while [ $# -gt 0 ]
 
 if [[ ! $skip_download ]]
 then
-  # Get any new course catalog query results
+  # Get any new course catalog query results, gened course lists, or session dates.
   export LFTP_PASSWORD=`cat /Users/vickery/.lftpwd`
   /usr/local/bin/lftp -f ./getcunyrc
 fi
@@ -22,5 +22,9 @@ fi
 # (re-)generate latest enrollment and gened sheets
 ./mogrify.py
 
+# (re-)generate the session dates sheet
+./session_dates.py
+
 # Copy the new files to Google Drive, and archive them
 ./to_drive.py
+

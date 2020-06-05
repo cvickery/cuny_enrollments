@@ -47,6 +47,7 @@ flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
 archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
 latest_enrollments_id = '1g36HsFjtf-_emG_4t36HF7S8O1TMS7AsvYBoPUeIiOY'
+session_dates_id = '1YxcGZuGi5MS8SFSQ2iQ23SpNLVQKRlnvrF2onNkEPT8'
 
 SCOPES = 'https://www.googleapis.com/auth/drive'
 store = file.Storage('storage.json')
@@ -75,6 +76,17 @@ for new_file in new_files:
                                  resumable=True)
     # Do the update
     result = service.files().update(fileId=latest_enrollments_id,
+                                    media_body=media_body).execute()
+    print(f'Updated {result["name"]} from {new_file.name}')
+
+  # If this is a session dates sheet, update the contents of "session_dates"
+  if 'session' in new_file.name:
+    # File's new content.
+    media_body = MediaFileUpload(new_file.resolve(),
+                                 mimetype='application/vnd.google-apps.spreadsheet',
+                                 resumable=True)
+    # Do the update
+    result = service.files().update(fileId=session_dates_id,
                                     media_body=media_body).execute()
     print(f'Updated {result["name"]} from {new_file.name}')
 

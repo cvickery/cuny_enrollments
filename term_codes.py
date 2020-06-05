@@ -5,6 +5,7 @@ import csv
 
 from argparse import ArgumentParser
 from collections import namedtuple
+from datetime import date
 from pathlib import Path
 
 
@@ -21,6 +22,8 @@ def term_code(term: str, session: str) -> str:
    M  SSS  Full Name       TT  Abbr
    2* WIN  Winter          10  WIN
    2    1  Spring          20  SPR
+   6    1  Summer 8 Week   58  S08 # Used prior to 2009
+   6    2  Summer 6 Week   56  S06 # Used prior to 2009
    6  4W1  Summer 1 Short  41  SS1
    6  4W2  Summer 1 Long   42  SL1
    6  10W  Summer 10 Week  60  S10
@@ -38,13 +41,23 @@ def term_code(term: str, session: str) -> str:
     if month == '2':
       term_name = f'{year}.SPR'
       term_string = f'Spring {year}'
+    elif month == '6':
+      term_code = f'{year}.58'
+      term_name = f'{year}.S08'
+      term_string = f'Summer Long {year}'
     elif month == '9':
       term_name = f'{year}.FALL'
       term_string = f'Fall {year}'
     else:
       raise ValueError(f'Unknown term-session: {term}-{session}')
 
-  elif session == 'WIN':
+  elif session == '2':
+    assert(month == '6' and year < 2010)
+    term_code = f'{year}.56'
+    term_name = f'{year}.S06'
+    term_string = f'Summer Short {year}'
+
+  elif session == 'WIN' or session == 'MIN':  # Typo for term 1079
     # *CUNYfirst used to associate Winter with previous Fall (9 for the month). In that case add 1
     # to the year.
     if month == '9':
@@ -133,6 +146,7 @@ if __name__ == '__main__':
   else:
     code, name, string = term_code(args.term, args.session)
     print(f'{args.term} {args.session:>3} : {code:8} : {name:9} : "{string}"')
+    print(f"{end_date(code).strftime('%b %d, %Y')}")
 
 """ Above is based on the following extract from get_805_enrollments.php
 """
