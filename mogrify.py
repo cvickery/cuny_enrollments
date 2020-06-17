@@ -116,7 +116,6 @@ def mogrify(input_file, separate_meeting_cols=False):
           # Depending on how the query is run, the year might be 2 digits. Assume 21st century.
           if y < 100:
             y += 2000
-          # Include Separate/Combined info in file name
           outfile = Path(f'./new_files/{y}-{int(m):02}-{int(d):02}_enrollments.csv')
 
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
@@ -183,7 +182,7 @@ def mogrify(input_file, separate_meeting_cols=False):
                                                 [instructor],
                                                 gened.rd,
                                                 gened.variant,
-                                                gened.attr])
+                                                gened.attr.replace('@', ' ')])
         else:
           # Check that everything except instructors/rooms is the same
           if args.debug:
