@@ -9,12 +9,12 @@ import sys
 import codecs
 
 from pathlib import Path
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from datetime import date
 
 # Publics
 # -------------------------------------------------------------------------------------------------
-# Dictionary of CF RDs used at QC and their abbreviations
+# Dictionary of CF RDs used at QC, and their abbreviations
 rds = {'RECR': 'EC',
        'RLPR': 'LPS',
        'RMQR': 'MQR',
@@ -29,7 +29,7 @@ gened_courses = dict()  # courses with a GenEd RD or Attribute
 
 # Privates
 # -------------------------------------------------------------------------------------------------
-_all_courses = dict()
+_all_courses = defaultdict(list)
 
 
 def _numeric_part(arg):
@@ -82,8 +82,10 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
         if float(row.min_units) > 3:
            stem_variant = 'Y'
       course_id = int(row.course_id)
+      offer_nbr = int(row.offer_nbr)
       # print(f'{course_id:06}, {course} {rd}')
-      _all_courses[course_id] = [course, title, rd, stem_variant, '']
+      _all_courses[course_id].append([course, title, rd, stem_variant, ''])
+assert 125395 in _all_courses.keys()
 
 # Get latest attr sheet, and extract info by course_id
 that = None
@@ -106,13 +108,20 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
       course_id = int(row.course_id)
       attrs = row.attr_value.replace('COPT, ', '').replace('COPT', '').strip()
       try:
-        _all_courses[course_id][4] = attrs
+        for course in _all_courses[course_id]:
+          course[4] = attrs
       except KeyError as ke:
+        print(ke)
         continue  # inactive
+
+assert 125395 in _all_courses.keys()
 for key in _all_courses.keys():
-  course, title, rd, variant, attr = _all_courses[key]
-  if rd != '' or attr != '':
-    gened_courses[course] = GenEd._make([title, rd, variant, attr.replace(' ', '@')])
+  for row in _all_courses[key]:
+    course, title, rd, variant, attr = row
+    if rd != '' or attr != '':
+      gened_courses[course] = GenEd._make([title, rd, variant, attr.replace(' ', '@')])
+    else:
+      assert key != 125395, f'{course} {title} {rd} {variant} {attr}'
 
 courses = sorted(gened_courses.keys(), key=lambda c: _numeric_part(c))
 courses = sorted(courses, key=lambda c: _discipline_part(c))
