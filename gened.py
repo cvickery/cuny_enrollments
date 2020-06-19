@@ -85,7 +85,6 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
       offer_nbr = int(row.offer_nbr)
       # print(f'{course_id:06}, {course} {rd}')
       _all_courses[course_id].append([course, title, rd, stem_variant, ''])
-assert 125395 in _all_courses.keys()
 
 # Get latest attr sheet, and extract info by course_id
 that = None
@@ -111,17 +110,14 @@ with codecs.open(that, 'r', encoding='utf-8', errors='replace') as gened_file:
         for course in _all_courses[course_id]:
           course[4] = attrs
       except KeyError as ke:
-        print(ke)
         continue  # inactive
 
-assert 125395 in _all_courses.keys()
 for key in _all_courses.keys():
   for row in _all_courses[key]:
     course, title, rd, variant, attr = row
+    # GenEd courses have a Pathways RD or a COPT|WRIC attribute
     if rd != '' or attr != '':
       gened_courses[course] = GenEd._make([title, rd, variant, attr.replace(' ', '@')])
-    else:
-      assert key != 125395, f'{course} {title} {rd} {variant} {attr}'
 
 courses = sorted(gened_courses.keys(), key=lambda c: _numeric_part(c))
 courses = sorted(courses, key=lambda c: _discipline_part(c))
