@@ -1,5 +1,8 @@
 #! /usr/local/bin/python3
-""" Convert latest Enrollments csv to a web page showing scheduled PLAS and Pathways courses.
+""" Convert latest Enrollments csv to web pages showing scheduled PLAS and Pathways courses for each
+    term not yet completed.
+    The idea is to generate a set of offered_gened pages, indexed by semester.
+    That's not what it does right now.
 """
 
 import sys
@@ -21,10 +24,14 @@ gen_date = date.today().strftime('%Y-%m-%d')
 code, semester, semester_name = term_code(args.term, args.session)
 html_file = open(f'offered_gened_{semester}_as_of_{gen_date}.html', 'w')
 
-enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*combined*'),
+enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*enrollments.csv'),
                          reverse=True)[0]
-asof = enrollment_file.name[0:10]
-asof_date = date(*[int(x) for x in asof.split('-')]).strftime('%B %d, %Y')
+asof_date = enrollment_file.name[0:10]
+asof_date_str = date.fromisoformat(asof_date).strftime('%B %d, %Y')
+gened_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('(*gened.csv'),
+                    reverse=True)[0]
+session_dates_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('(*dates.csv'),
+                            reverse=True)[0]
 
 Requirements = {'EC': 'English Composition',
                 'MQR': 'Mathematics and Quantitative Reasoning',
