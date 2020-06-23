@@ -176,9 +176,19 @@ for semester in sorted(gened_courses.keys()):
           padding: 1em;
         }}
         .course-list {{
-            column-count: 3;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             column-gap: 1em;
-            column-rule: 1px solid #ccc;
+            row-gap: 0;
+        }}
+        .course-list h2 {{
+          grid-column-start: 1;
+          grid-column-end: 4;
+          grid-row-start: 1;
+          grid-row-end:2;
+        }}
+        .course-list p {{
+          margin:0;
         }}
         h1, h1+p {{
           text-align:center;
@@ -201,14 +211,14 @@ for semester in sorted(gened_courses.keys()):
     </head>
     <body>
       <h1>Pathways Offerings for {semester_name}</h1>
-      <p><em>CUNYfirst data as of {asof_date}</em></p>
-      <hr>
-      <section class="course-list">
+      <p><em>CUNYfirst data as of {asof_date}</em></p><hr>
+
   """, file=html_file)
 
     for requirement in pathways_requirements:
       suffix = '' if len(offered_pathways_courses[requirement]) == 1 else 's'
-      print(f'<h2>{requirement_names[requirement]} '
+      print(f'<section class="course-list">'
+            f'<h2>{requirement_names[requirement]} '
             f'(<em>{len(offered_pathways_courses[requirement])}'
             f' course{suffix}</em>)</h2>', file=html_file)
       for course in sorted(offered_pathways_courses[requirement]):
@@ -221,10 +231,10 @@ for semester in sorted(gened_courses.keys()):
           per_cent = f'({100 * enrollment / limit:.0f}% filled)'
         except ZeroDivisionError:
           per_cent = ''
-        print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
-              f'{enrollment:,} / {limit:,} seats {per_cent}</em></span>', file=html_file)
+        print(f'<p><strong>{course}</strong> {title}: <em>{num_sections} section{suffix}; '
+              f'{enrollment:,} / {limit:,} seats {per_cent}</em>', file=html_file)
       print("""
-          </section>
+          </section><hr>
         </body>
       </html>
       """, file=html_file)
