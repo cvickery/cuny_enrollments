@@ -1,6 +1,9 @@
 #! /usr/local/bin/python3
 """ Convert latest Enrollments csv to web pages showing scheduled PLAS and Pathways courses for each
     term not yet completed.
+
+    A separate web page will generate links to each available one.
+
     The idea is to generate a set of offered_gened pages, indexed by semester.
     That's not what it does right now.
 """
@@ -8,202 +11,243 @@
 import sys
 import csv
 from pathlib import Path
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from argparse import ArgumentParser
 from datetime import date
 
-from term_codes import term_code
+from term_codes import term_code, term_code_to_name
 
 parser = ArgumentParser()
 parser.add_argument('-d', '--debug', action='store_true')
-parser.add_argument('-s', '--session', default='1')
-parser.add_argument('-t', '--term', default='1202')
 args = parser.parse_args()
 
-gen_date = date.today().strftime('%Y-%m-%d')
-code, semester, semester_name = term_code(args.term, args.session)
-html_file = open(f'offered_gened_{semester}_as_of_{gen_date}.html', 'w')
-
-enrollment_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('*enrollments.csv'),
-                         reverse=True)[0]
-asof_date = enrollment_file.name[0:10]
-asof_date_str = date.fromisoformat(asof_date).strftime('%B %d, %Y')
-gened_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('(*gened.csv'),
-                    reverse=True)[0]
-session_dates_file = sorted(Path('/Users/vickery/CUNY_Enrollments/archive').glob('(*dates.csv'),
-                            reverse=True)[0]
-
-Requirements = {'EC': 'English Composition',
-                'MQR': 'Mathematics and Quantitative Reasoning',
-                'LPS': 'Life and Physical Sciences',
-                'WCGI': 'World Cultures and Global Issues',
-                'USED': 'United States Experience in its Diversity',
-                'CE': 'Creative Expression',
-                'IS': 'Individual and Society',
-                'SW': 'Scientific World',
-                'QNSLIT': 'QC Literature',
-                'QNSLANG': 'QC Language',
-                'QNSSCI': 'QC Science',
-                'QNSSYN': 'QC Synthesis',
-                'WRIC': 'Writing Intensive',
-                'AP': 'Appreciating and Participating in the Arts',
-                'CV': 'Culture and Values',
-                'NS': 'Natural Science',
-                'NS+L': 'Natural Science with Laboratory',
-                'RL': 'Reading Literature',
-                'SS': 'Analyzing Social Structures',
-                'US': 'United States',
-                'ET': 'European Traditions',
-                'WC': 'World Cultures',
-                'PI': 'Pre-Industrial Society'}
+requirement_names = {'EC': 'English Composition',
+                     'MQR': 'Mathematics and Quantitative Reasoning',
+                     'LPS': 'Life and Physical Sciences',
+                     'WCGI': 'World Cultures and Global Issues',
+                     'USED': 'United States Experience in its Diversity',
+                     'CE': 'Creative Expression',
+                     'IS': 'Individual and Society',
+                     'SW': 'Scientific World',
+                     'QNSLIT': 'QC Literature',
+                     'QNSLANG': 'QC Language',
+                     'QNSSCI': 'QC Science',
+                     'QNSSYN': 'QC Synthesis',
+                     'WRIC': 'Writing Intensive',
+                     'AP': 'Appreciating and Participating in the Arts',
+                     'CV': 'Culture and Values',
+                     'NS': 'Natural Science',
+                     'NS+L': 'Natural Science with Laboratory',
+                     'RL': 'Reading Literature',
+                     'SS': 'Analyzing Social Structures',
+                     'US': 'United States',
+                     'ET': 'European Traditions',
+                     'WC': 'World Cultures',
+                     'PI': 'Pre-Industrial Society'}
 pathways_requirements = ['EC', 'MQR', 'LPS',
                          'WCGI', 'USED', 'CE', 'IS', 'SW',
                          'QNSLIT', 'QNSLANG', 'QNSSCI', 'QNSSYN', 'WRIC']
 plas_requirements = ['AP', 'CV', 'NS', 'NS+L', 'RL', 'SS', 'US', 'ET', 'WC', 'PI', 'WRIC']
 
-Course = namedtuple('Course', 'title sections data')
 
-# Offered courses
-offered_pathways_courses = {req: set() for req in pathways_requirements}
-offered_plas_courses = {req: set() for req in plas_requirements}
+# to_html()
+# ------------------------------------------------------------------------------------------------
+def to_html(semester, info, html_file, asof_date):
+  """ Given a dict of titles, rds, and attrbuites indexed by course, generate an HTML report for
+      a semester.
+  """
+  semester_name = term_code_to_name(semester)
+  # Generate the list of courses for each requirement
+  print(f"""
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8"/>
+      <title>{semester} GenEd Courses</title>
+      <style>
+        body {{
+          padding: 1em;
+        }}
+        .course-list {{
+            column-count: 3;
+            column-gap: 1em;
+            column-rule: 1px solid #ccc;
+        }}
+        h1, h1+p {{
+          text-align:center;
+          margin: 0;
+        }}
+        @media print {{
+          h1:not(:first-of-type) {{
+            page-break-before: always;
+          }}
 
-# All PLAS courses
-all_plas_courses = dict()
+          h2 {{
+            break-after: avoid;
+          }}
 
-# Populate all_plas_courses
-with open('./plas.csv') as plas_file:
-  reader = csv.reader(plas_file)
-  header = None
+          .course-list, p {{
+            font-size: 8pt;
+          }}
+        }}
+      </style
+    </head>
+    <body>
+      <h1>Pathways Offerings for {semester_name}</h1>
+      <p><em>CUNYfirst data as of {asof_date}</em></p>
+      <hr>
+      <section class="course-list">
+  """, file=html_file)
+
+
+gen_date = date.today().strftime('%Y-%m-%d')
+
+# Get most-recent available enrollments file
+latest_enrollments = None
+new_files = Path('./new_files/').glob('*enrollments.csv')
+for new_file in new_files:
+  if latest_enrollments is None or \
+     latest_enrollments.stat().st_mtime < new_file.stat().st_mtime:
+     latest_enrollments = new_file
+
+if latest_enrollments is None:
+  new_files = Path('./archive/').glob('*enrollments.csv')
+  for new_file in new_files:
+    if latest_enrollments is None or \
+       latest_enrollments.stat().st_mtime < new_file.stat().st_mtime:
+       latest_enrollments = new_file
+
+if latest_enrollments is None:
+  sys.exit('No enrollments file available')
+else:
+  print(f'Using {latest_enrollments.resolve()}')
+  asof_date = date.fromtimestamp(latest_enrollments.stat().st_mtime)
+  asof_date_str = asof_date.strftime('%B %d, %Y')
+
+# Pull enrollment info for all scheduled gened courses
+headings = None
+gened_courses = defaultdict(list)
+with open(latest_enrollments) as csv_file:
+  reader = csv.reader(csv_file)
   for line in reader:
-    if header is None:
-      header = line
-    else:
-      course, plas_requirement = line
-      if course not in all_plas_courses.keys():
-        all_plas_courses[course] = []
-      all_plas_courses[course].append(plas_requirement)
-
-# Gather information for all sections of all scheduled courses
-all_courses = dict()
-requirements = {r: {} for r in Requirements.keys()}
-Row = None
-with open(enrollment_file) as infile:
-  reader = csv.reader(infile)
-  for line in reader:
-    if Row is None:
-      Row = namedtuple('Row', [c.replace(' ', '_').replace('#', 'num').lower() for c in line])
-      row_len = len(Row._fields)
-      if args.debug:
-        print(Row._fields, file=sys.stderr)
+    if headings is None:
+      headings = [h.lower().replace(' ', '_').replace('?', '').replace('#', 'num') for h in line]
+      Row = namedtuple('Row', headings)
       continue
-    if line[1] != semester:
-      continue
-    while len(line) < row_len:
-      line.append('')
     row = Row._make(line)
-    if row.course not in all_courses.keys():
-      all_courses[row.course] = Course._make([row.title, set(), [0, 0]])
-    if row.section not in all_courses[row.course].sections:
-      all_courses[row.course].sections.add(row.section)
-    all_courses[row.course].data[0] += int(row.enrollment)
-    all_courses[row.course].data[1] += int(row.limit)
+    if row.gened_rd != '' or row.gened_attribute != '':
+      gened_courses[row.semester_code].append(row)
 
-    # Update Pathways dicts
-    if row.rd in pathways_requirements:
-      offered_pathways_courses[row.rd].add(row.course)
-    for attr in row.gened_attributes.split(','):
-      attr = attr.strip()
-      if attr in pathways_requirements:
-        offered_pathways_courses[attr].add(row.course)
-      if attr in plas_requirements:  # WRIC will match here
-        offered_plas_courses[attr].add(row.course)
+# Process offerings in semester order
+for semester in sorted(gened_courses.keys()):
+  with open(f'offered_gened/{semester}.html', 'w') as html_file:
+    offered_pathways_courses = defaultdict(set)
+    courses = sorted(gened_courses[semester], key=lambda row: (row.gened_rd,
+                                                               row.gened_attribute,
+                                                               row.course))
+    course_info = dict()
+    for course in courses:
+      course_str = course.course.strip()
+      if course_str not in course_info.keys():
+        course_info[course_str] = {'title': course.title,
+                                   'sections': 0,
+                                   'limit': 0,
+                                   'enrollment': 0}
+        course_info[course_str]['sections'] += 1
+        course_info[course_str]['limit'] += int(course.limit)
+        course_info[course_str]['enrollment'] += int(course.enrollment)
+        if course.gened_rd != '':
+          offered_pathways_courses[course.gened_rd].add(course_str)
+        copts = course.gened_attribute.split(',')
+        for copt in [c.strip() for c in copts]:
+          if copt != '':
+            offered_pathways_courses[copt.strip()].add(course_str)
 
-    # Update PLAS dicts
-    if row.course in all_plas_courses.keys():
-      for req in all_plas_courses[row.course]:
-        offered_plas_courses[req].add(row.course)
-
-# Generate the list of courses for each requirement
-print(f"""
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <title>{semester_name} GenEd Courses {asof}</title>
-    <style>
-      body {{
-        padding: 1em;
-      }}
-      .course-list {{
-          column-count: 3;
-          column-gap: 1em;
-          column-rule: 1px solid #ccc;
-      }}
-      h1, h1+p {{
-        text-align:center;
-        margin: 0;
-      }}
-      @media print {{
-        h1:not(:first-of-type) {{
-          page-break-before: always;
+    # Generate the html file
+    semester_name = term_code_to_name(semester)
+    print(f"""
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8"/>
+      <title>{semester} GenEd Courses</title>
+      <style>
+        body {{
+          padding: 1em;
         }}
-
-        h2 {{
-          break-after: avoid;
+        .course-list {{
+            column-count: 3;
+            column-gap: 1em;
+            column-rule: 1px solid #ccc;
         }}
-
-        .course-list, p {{
-          font-size: 8pt;
+        h1, h1+p {{
+          text-align:center;
+          margin: 0;
         }}
-      }}
-    </style
-  </head>
-  <body>
-    <h1>Pathways Offerings for {semester_name}</h1>
-    <p><em>CUNYfirst data as of {asof_date}</em></p>
-    <hr>
-    <section class="course-list">
-""", file=html_file)
-for requirement in pathways_requirements:
-  print(f'<h2>{Requirements[requirement]} (<em>{len(offered_pathways_courses[requirement])}'
-        f' courses</em>)</h2>', file=html_file)
-  for course in sorted(offered_pathways_courses[requirement]):
-    title = all_courses[course].title
-    num_sections = len(all_courses[course].sections)
-    suffix = '' if num_sections == 1 else 's'
-    enrollment = all_courses[course].data[0]
-    limit = all_courses[course].data[1]
-    try:
-      per_cent = f'({100 * enrollment / limit:.0f}%)'
-    except ZeroDivisionError:
-      per_cent = ''
-    print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
-          f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
+        @media print {{
+          h1:not(:first-of-type) {{
+            page-break-before: always;
+          }}
 
-print(f"""
-    </section>
-    <h1>Perspectives Offerings for {semester_name}</h1>
-    <p><em>CUNYfirst data as of {asof_date}</em></p>
-    <hr>
-    <section class="course-list">
-""", file=html_file)
-for requirement in plas_requirements:
-  print(f'<h2>{Requirements[requirement]} (<em>{len(offered_plas_courses[requirement])}'
-        f' courses</em>)</h2>', file=html_file)
-  for course in sorted(offered_plas_courses[requirement]):
-    title = all_courses[course].title
-    num_sections = len(all_courses[course].sections)
-    suffix = '' if num_sections == 1 else 's'
-    enrollment = all_courses[course].data[0]
-    limit = all_courses[course].data[1]
-    try:
-      per_cent = f'({100 * enrollment / limit:.0f}%)'
-    except ZeroDivisionError:
-      per_cent = ''
-    print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
-          f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
-print("""
-    </section>
-  </body>
-</html>
-""", file=html_file)
+          h2 {{
+            break-after: avoid;
+          }}
+
+          .course-list, p {{
+            font-size: 8pt;
+          }}
+        }}
+      </style
+    </head>
+    <body>
+      <h1>Pathways Offerings for {semester_name}</h1>
+      <p><em>CUNYfirst data as of {asof_date}</em></p>
+      <hr>
+      <section class="course-list">
+  """, file=html_file)
+
+    for requirement in pathways_requirements:
+      suffix = '' if len(offered_pathways_courses[requirement]) == 1 else 's'
+      print(f'<h2>{requirement_names[requirement]} '
+            f'(<em>{len(offered_pathways_courses[requirement])}'
+            f' course{suffix}</em>)</h2>', file=html_file)
+      for course in sorted(offered_pathways_courses[requirement]):
+        title = course_info[course]['title']
+        num_sections = course_info[course]['sections']
+        suffix = '' if num_sections == 1 else 's'
+        enrollment = course_info[course]['enrollment']
+        limit = course_info[course]['limit']
+        try:
+          per_cent = f'({100 * enrollment / limit:.0f}% filled)'
+        except ZeroDivisionError:
+          per_cent = ''
+        print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
+              f'{enrollment:,} / {limit:,} seats {per_cent}</em></span>', file=html_file)
+      print("""
+          </section>
+        </body>
+      </html>
+      """, file=html_file)
+
+# print(f"""
+#     </section>
+#     <h1>Perspectives Offerings for {semester_name}</h1>
+#     <p><em>CUNYfirst data as of {asof_date}</em></p>
+#     <hr>
+#     <section class="course-list">
+# """, file=html_file)
+# for requirement in plas_requirements:
+#   print(f'<h2>{Requirements[requirement]} (<em>{len(offered_plas_courses[requirement])}'
+#         f' courses</em>)</h2>', file=html_file)
+#   for course in sorted(offered_plas_courses[requirement]):
+#     title = all_courses[course].title
+#     num_sections = len(all_courses[course].sections)
+#     suffix = '' if num_sections == 1 else 's'
+#     enrollment = all_courses[course].data[0]
+#     limit = all_courses[course].data[1]
+#     try:
+#       per_cent = f'({100 * enrollment / limit:.0f}%)'
+#     except ZeroDivisionError:
+#       per_cent = ''
+#     print(f'<p>{course} {title}<span class="stats">: <em>{num_sections} section{suffix}; '
+#           f'{enrollment:,} / {limit:,} seats {per_cent} filled</em></span>', file=html_file)
