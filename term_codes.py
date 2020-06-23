@@ -8,8 +8,20 @@ from collections import namedtuple
 from datetime import date
 from pathlib import Path
 
+_sessions = {'10': ('1', 'WIN'),  # WIN
+             '20': ('2', '1'),    # SPR
+             '58': ('6', '1'),    # Summer 8 Week
+             '56': ('6', '2'),    # Summer 6 Week
+             '41': ('6', '4W1'),  # Summer 8 Week
+             '42': ('6', '4W2'),  # Summer 8 Week
+             '60': ('6', '10W'),  # Summer 8 Week
+             '61': ('6', '6W1'),  # Summer 8 Week
+             '62': ('6', '6W2'),  # Summer 8 Week
+             '90': ('9', '1'),    # FALL
+             }
 
-def term_code(term: str, session: str) -> str:
+
+def term_code(term: str, session: str) -> tuple:
   """ Convert CUNYfirst term code (CYYM) and session code (1, WIN, 4W1, etc) into a QC term_code
       string "YYYY.TT", and term name string, "YYYY.Abbr". The idea is that the term code strings
       are in chronological order but the term name strings are more descriptive.
@@ -101,7 +113,21 @@ def term_code(term: str, session: str) -> str:
   else:
     raise ValueError(f'Unknown term-session: {term}-{session}')
 
-  return term_code, term_name, term_string
+  return (term_code, term_name, term_string)
+
+
+# term_code_to_name()
+# -------------------------------------------------------------------------------------------------
+def term_code_to_name(arg: str) -> str:
+  """ Given a term_code as defined above, return the corresponding term_string. Reverse-convert the
+      term_code into a CUNYfirst term and session, then use term_code to get the string.
+  """
+  year, session_code = arg.split('.')
+  century = 0 if int(year) < 2000 else 1
+  cyy = f'{century}{year[2:4]}'
+  month, session = _sessions[session_code]
+  code, name, string = term_code(f'{cyy}{month}', session)
+  return string
 
 
 if __name__ == '__main__':
@@ -111,42 +137,11 @@ if __name__ == '__main__':
   parser.add_argument('-d', '--debug', action='store_true')
   parser.add_argument('-t', '--term', default='1202')
   parser.add_argument('-s', '--session', default='1')
-  parser.add_argument('-f', '--file', default=None)
   args = parser.parse_args()
-  if args.file is not None:
-    ts_set = set()
-    if args.file == 'latest':
-      that = None
-      them = Path().glob('./downloads/QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv')
-      for this in them:
-        if that is None or this.stat().st_mtime > that.stat().st_mtime:
-          that = this
-    else:
-      that = Path(args.query_file)
-    print(f'Using {that}')
-    cols = None
-    with codecs.open(that, 'r', encoding='utf-8', errors='replace') as infile:
-        reader = csv.reader(infile)
-        for line in reader:
-          if cols is None:
-            line[0] = line[0].replace('\ufeff', '')
-            if line[0] != 'Institution':
-              continue
-            cols = [col.lower().replace(' ', '_') for col in line]
-            if args.debug:
-              print(cols, file=sys.stderr)
-            Row = namedtuple('Row', cols)
-          else:
-            row = Row._make(line)
-            ts = (row.term, row.session)
-            if ts not in ts_set:
-              ts_set.add((row.term, row.session))
-              code, name, string = term_code(row.term, row.session)
-              print(f'{row.term} {row.session:>3} : {code:8} : {name:9} : "{string}"')
-  else:
-    code, name, string = term_code(args.term, args.session)
-    print(f'{args.term} {args.session:>3} : {code:8} : {name:9} : "{string}"')
-    print(f"{end_date(code).strftime('%b %d, %Y')}")
+  code, name, string = term_code(args.term, args.session)
+  print(f'{args.term} {args.session:>3} : {code:8} : {name:9} : "{string}"')
+  assert string == term_code_to_name(code), f'"{string}" is not "{term_code_to_name(code)}"'
+  print('OK')
 
 """ Above is based on the following extract from get_805_enrollments.php
 """
