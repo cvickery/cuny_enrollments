@@ -28,3 +28,5 @@ fi
 # Copy the new files to Google Drive, and archive them
 ./to_drive.py
 
+# Update the lists of scheduled GenEd courses.
+./generate_offered.py
