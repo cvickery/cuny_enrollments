@@ -189,7 +189,7 @@ for semester in sorted(gened_courses.keys()):
         }}
         .note {{
           font-weight:normal;
-          font-size:1em;
+          font-size:0.7em;
         }}
         .course-list p {{
           margin:0;
@@ -222,9 +222,10 @@ for semester in sorted(gened_courses.keys()):
     for requirement in pathways_requirements:
       suffix = '' if len(offered_pathways_courses[requirement]) == 1 else 's'
       if requirement == 'EC':
-        note = ('<br/><span class="note"Note: English Composition requires two courses, which are'
-                ' called College Writing 1 (ENGL 110) and College Writing 2 at Queens College'
-                '</span>')
+        note = ('<br/><span class="note">Note: English Composition requires two courses. At Queens'
+                ' the first course is always ENGL 110, College Writing I. Any course other than'
+                ' College Writing I listed in this section may be used as the second English'
+                ' Composition course.</span>')
       else:
         note = ''
       print(f'<section class="course-list">'
