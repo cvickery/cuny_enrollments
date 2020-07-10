@@ -135,4 +135,7 @@ else:
     writer = csv.writer(csv_file)
     writer.writerow(['Course', 'Title', 'Core', 'STEM Variant', 'GenEd Attribute'])
     for course in courses:
-      writer.writerow([course] + [ge.replace('@', ' ') for ge in gened_courses[course]])
+      col_data = [ge.replace('@', ' ') for ge in gened_courses[course]]
+      if gened_courses[course].rd == 'EC' and not course.startswith('ENGL 110'):
+        col_data[1] += ' (CW2)'
+      writer.writerow([course] + col_data)
