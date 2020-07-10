@@ -140,7 +140,7 @@ with open(latest_enrollments) as csv_file:
 
 # Process offerings in semester order
 for semester in sorted(gened_courses.keys()):
-  with open(f'offered_gened/{semester}.html', 'w') as html_file:
+  with open(f'./offered_gened/{semester}.html', 'w') as html_file:
     offered_pathways_courses = defaultdict(set)
     courses = sorted(gened_courses[semester], key=lambda row: (row.gened_rd,
                                                                row.gened_attribute,
