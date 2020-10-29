@@ -153,15 +153,15 @@ for semester in sorted(gened_courses.keys()):
                                    'sections': 0,
                                    'limit': 0,
                                    'enrollment': 0}
-        course_info[course_str]['sections'] += 1
-        course_info[course_str]['limit'] += int(course.limit)
-        course_info[course_str]['enrollment'] += int(course.enrollment)
-        if course.gened_rd != '':
-          offered_pathways_courses[course.gened_rd].add(course_str)
-        copts = course.gened_attribute.split(',')
-        for copt in [c.strip() for c in copts]:
-          if copt != '':
-            offered_pathways_courses[copt.strip()].add(course_str)
+      course_info[course_str]['sections'] += 1
+      course_info[course_str]['limit'] += int(course.limit)
+      course_info[course_str]['enrollment'] += int(course.enrollment)
+      if course.gened_rd != '':
+        offered_pathways_courses[course.gened_rd].add(course_str)
+      copts = course.gened_attribute.split(',')
+      for copt in [c.strip() for c in copts]:
+        if copt != '':
+          offered_pathways_courses[copt.strip()].add(course_str)
 
     # Generate the html file
     semester_name = term_code_to_name(semester)
