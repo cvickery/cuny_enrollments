@@ -109,6 +109,9 @@ def mogrify(input_file, separate_meeting_cols=False):
         if row.institution != 'QNS01':
           continue
 
+        # if row.subject_area == 'PHIL' and '104' in row.catalog_nbr:
+        #   print(row)
+
         # Use the SYSDATE from the first data row to build the output file name
         if outfile is None:
           # Use the query SYSDATE for the output file name
@@ -126,7 +129,6 @@ def mogrify(input_file, separate_meeting_cols=False):
         status_counts[class_status] += 1
         # if row.class_status != 'Active':
         #   continue
-
         course_str = f'{row.subject_area:>7} {row.catalog_nbr.strip():<6}'
         title = row.class_title.replace('\'', '’')
         career = row.career
