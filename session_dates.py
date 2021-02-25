@@ -33,6 +33,8 @@ if session_table_query_file is not None:
           Cols = namedtuple('Cols', cols)
           continue
         row = Cols._make(line)
+        if row.institution != 'QNS01':
+          continue
         try:
           code, name, string = term_code(row.term, row.session)
           end_dates[code] = row.session_end_date
