@@ -19,6 +19,9 @@ then
   /usr/local/bin/lftp -f ./getcunyrc
 fi
 
+# Piggyback transfers applied query: move to ../transfers_applied project
+mv downloads/CV_QNS_TRNS_DTL* ../transfers_applied/downloads
+
 # (re-)generate latest enrollment and gened sheets
 ./mogrify.py
 
