@@ -3,4 +3,4 @@ cd ERP_Queens
 mget -EO /Users/vickery/CUNY_Enrollments/downloads QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv \
                                                    QNS_GENED*.csv\
                                                    QNS_CV_SESSION*.csv\
-                                                   CB_LEH*.csv
+                                                   CV_QNS_TRNS_DTL*.csv
