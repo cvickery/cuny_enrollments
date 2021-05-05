@@ -29,7 +29,7 @@ no_gened = GenEd._make(['', '', '', ''])
 ClassInfo = namedtuple('ClassInfo', 'semester_code semester_name course_str title career has_fees '
                                     'is_ztc primary_component this_component class_number '
                                     'class_status section enrollment limit schedule mode '
-                                    'instructor rd variant attr')
+                                    'instructor rd variant attr short_notes class_notes')
 
 
 def instructor_order(arg):
@@ -109,9 +109,6 @@ def mogrify(input_file, separate_meeting_cols=False):
         if row.institution != 'QNS01':
           continue
 
-        # if row.subject_area == 'PHIL' and '104' in row.catalog_nbr:
-        #   print(row)
-
         # Use the SYSDATE from the first data row to build the output file name
         if outfile is None:
           # Use the query SYSDATE for the output file name
@@ -184,7 +181,9 @@ def mogrify(input_file, separate_meeting_cols=False):
                                                 [instructor],
                                                 gened.rd,
                                                 gened.variant,
-                                                gened.attr.replace('@', ' ')])
+                                                gened.attr.replace('@', ' '),
+                                                row.short_notes,
+                                                row.class_notes])
         else:
           # Check that everything except instructors/rooms is the same
           if args.debug:
@@ -228,7 +227,7 @@ def mogrify(input_file, separate_meeting_cols=False):
                        'Course', 'Title', 'Level', 'Has Fees?', 'OERS?', 'Primary Component',
                        'This Component', 'Class #', 'Class Status', 'Section', 'Enrollment',
                        'Limit', 'Schedule', 'Mode', 'Instructor', 'GenEd RD', 'STEM Variant?',
-                       'GenEd Attribute'])
+                       'GenEd Attribute', 'Short Notes', 'Class Notes'])
       for row in classes:
         cells = list(classes[row])
         for i in range(len(cells)):
