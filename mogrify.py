@@ -11,7 +11,7 @@ import sys
 from datetime import date
 from typing import Dict, List, Tuple, Any
 from argparse import ArgumentParser
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from pathlib import Path
 
 from term_codes import term_code
@@ -29,7 +29,7 @@ no_gened = GenEd._make(['', '', '', ''])
 ClassInfo = namedtuple('ClassInfo', 'semester_code semester_name course_str title career has_fees '
                                     'is_ztc primary_component this_component class_number '
                                     'class_status section enrollment limit schedule mode '
-                                    'instructor rd variant attr short_notes class_notes')
+                                    'instructor rd variant attr class_notes')
 
 
 def instructor_order(arg):
@@ -87,7 +87,7 @@ def mogrify(input_file, separate_meeting_cols=False):
   classes: Dict[Tuple, List] = dict()
 
   # Report only Active classes, but count others.
-  status_counts: Dict[str, int] = dict()
+  status_counts = defaultdict(int)
 
   cols = None
   outfile = None
@@ -121,8 +121,6 @@ def mogrify(input_file, separate_meeting_cols=False):
         semester_code, semester_name, semester_string = term_code(row.term, row.session)
         # Count Cancelled, Stop Enrollment, and Tentative items, but process only Active.
         class_status = row.class_status
-        if class_status not in status_counts.keys():
-          status_counts[class_status] = 0
         status_counts[class_status] += 1
         # if row.class_status != 'Active':
         #   continue
@@ -141,6 +139,7 @@ def mogrify(input_file, separate_meeting_cols=False):
         enrollment = row.enrollment_total
         limit = row.enrollment_capacity
         mode = row.instruction_mode
+        class_notes = row.class_notes
         schedule = make_meetings_str(row.room,
                                      row.mtg_start,
                                      row.mtg_end,
@@ -182,8 +181,7 @@ def mogrify(input_file, separate_meeting_cols=False):
                                                 gened.rd,
                                                 gened.variant,
                                                 gened.attr.replace('@', ' '),
-                                                row.short_notes,
-                                                row.class_notes])
+                                                class_notes])
         else:
           # Check that everything except instructors/rooms is the same
           if args.debug:
@@ -206,7 +204,8 @@ def mogrify(input_file, separate_meeting_cols=False):
                         [instructor],
                         gened.rd,
                         gened.variant,
-                        gened.attr]
+                        gened.attr,
+                        class_notes]
             for old, new in zip(classes[class_key], new_data):
               if old != new:
                 print(class_key, old, new)
@@ -227,7 +226,7 @@ def mogrify(input_file, separate_meeting_cols=False):
                        'Course', 'Title', 'Level', 'Has Fees?', 'OERS?', 'Primary Component',
                        'This Component', 'Class #', 'Class Status', 'Section', 'Enrollment',
                        'Limit', 'Schedule', 'Mode', 'Instructor', 'GenEd RD', 'STEM Variant?',
-                       'GenEd Attribute', 'Short Notes', 'Class Notes'])
+                       'GenEd Attribute', 'Class Notes'])
       for row in classes:
         cells = list(classes[row])
         for i in range(len(cells)):
