@@ -27,7 +27,7 @@ from oauth2client import file, client, tools
 # Get all the csv files in the new_files directory
 
 # The 'new_files' and 'archive' directories are subdirectories of my 'CUNY_Enrollments' project dir.
-proj_dir = '/Users/vickery/CUNY_Enrollments'
+proj_dir = '/Users/vickery/Projects/cuny_enrollments'
 from_dir = f'{proj_dir}/new_files'
 to_dir = f'{proj_dir}/archive'
 

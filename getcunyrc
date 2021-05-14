@@ -1,6 +1,6 @@
 open --user CVickery --env-password sftp://st-edge.cuny.edu
 cd ERP_Queens
-mget -EO /Users/vickery/CUNY_Enrollments/downloads QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv \
-                                                   QNS_GENED*.csv\
-                                                   QNS_CV_SESSION*.csv\
-                                                   CV_QNS_TRNS_DTL*.csv
+mget -EO /Users/vickery/Projects/cuny_enrollments/downloads QCCV_SR_CLASS_ENRL_LOC_TIME_RD*.csv \
+                                                            QNS_GENED*.csv\
+                                                            QNS_CV_SESSION*.csv\
+                                                            CV_QNS_TRNS_DTL*.csv
