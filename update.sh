@@ -1,6 +1,9 @@
 #! /usr/local/bin/bash
 
-#  Command line args (lifted from CUNY_Curriculum/update_db)
+# Log this execution
+echo "`date +%Y-%m-%d` Update cuny_curriculum on `hostname`"
+
+#  Command line args (lifted from Projects/cuny_curriculum/update_db)
 while [ $# -gt 0 ]
   do
     if [[ ( "$1" == "--skip-download") || ( "$1" == "-sd" ) ]]
