@@ -41,7 +41,7 @@ for new_file in new_files:
     target = Path('/Library/Server/Web/Data/Sites/senate.qc.cuny.edu/'
                   'Curriculum/Approved_Courses/gened_courses.csv')
     target.unlink()
-    new_file.link_to(target)
+    new_file.hardlink_to(target)
     print(f'Linked {new_file.name} to Senate website as {target.name}')
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
