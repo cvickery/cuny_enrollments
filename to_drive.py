@@ -35,14 +35,14 @@ new_files = [file for file in Path(from_dir).glob('*.csv')]
 if len(new_files) == 0:
   sys.exit('No new files to upload.')
 
-# # Check for gened.csv
-# for new_file in new_files:
-#   if new_file.name.endswith('gened.csv'):
-#     target = Path('/Library/Server/Web/Data/Sites/senate.qc.cuny.edu/'
-#                   'Curriculum/Approved_Courses/gened_courses.csv')
-#     target.unlink(missing_ok=True)
-#     new_file.symlink_to(target)
-#     print(f'Linked {new_file.name} to Senate website as {target.name}')
+# Check for gened.csv
+for new_file in new_files:
+  if new_file.name.endswith('gened.csv'):
+    target = Path('/Library/Server/Web/Data/Sites/senate.qc.cuny.edu/'
+                  'Curriculum/Approved_Courses/gened_courses.csv')
+    target.unlink(missing_ok=True)
+    target.hardlink_to(new_file)
+    print(f'Linked {new_file.name} to Senate website as {target.name}')
 
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
