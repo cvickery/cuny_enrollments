@@ -38,7 +38,7 @@ if len(new_files) == 0:
 # Check for gened.csv
 for new_file in new_files:
   if new_file.name.endswith('gened.csv'):
-    target = Path('/Library/Server/Web/Data/Sites/senate.qc.cuny.edu/'
+    target = Path('/Users/vickery/Sites/senate.qc.cuny.edu/'
                   'Curriculum/Approved_Courses/gened_courses.csv')
     target.unlink(missing_ok=True)
     target.hardlink_to(new_file)
