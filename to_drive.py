@@ -44,6 +44,9 @@ for new_file in new_files:
     target.hardlink_to(new_file)
     print(f'Linked {new_file.name} to Senate website as {target.name}')
 
+# Now that QC Google Accounts are gone, the rest of this won’t work.
+exit()
+
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 
 archive_dir_id = '1wpTfVy7MF4Y7ds1mNfUO2eLxInrMHhmQ'
