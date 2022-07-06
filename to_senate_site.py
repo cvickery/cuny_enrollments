@@ -1,5 +1,12 @@
 #! /usr/local/bin/python3
-""" Upload all csv files in the "new_files" folder to the archives folder on Google Drive, and move
+""" This script was previously called "to_drive.py" because it was used to build an archive of QC
+    enrollment data on Google Drive. It also did updated GenEd information for the
+    senate.qc.cuny.edu/Curriculum website. Now that QC has abandoned Google Drive (July 2022), that
+    part of the code has been amputated, but the senate website update remains.
+
+    Old Comments:
+    -------------
+    Upload all csv files in the "new_files" folder to the archives folder on Google Drive, and move
     them to the archive folder here.
       Based on sample code from developer.google.com/
       I don't know what command line arguments are supported by oauth2client.tools.
@@ -33,7 +40,7 @@ to_dir = f'{proj_dir}/archive'
 
 new_files = [file for file in Path(from_dir).glob('*.csv')]
 if len(new_files) == 0:
-  sys.exit('No new files to upload.')
+  sys.exit('No new files.')
 
 # Check for gened.csv
 for new_file in new_files:
@@ -43,6 +50,8 @@ for new_file in new_files:
     target.unlink(missing_ok=True)
     target.hardlink_to(new_file)
     print(f'Linked {new_file.name} to Senate website as {target.name}')
+  # Move all new files to the archive folder.
+  new_file.rename(f'{to_dir}/{new_file.name}')
 
 # Now that QC Google Accounts are gone, the rest of this won’t work.
 exit()
@@ -95,5 +104,3 @@ for new_file in new_files:
                                     media_body=media_body).execute()
     print(f'Updated {result["name"]} from {new_file.name}')
 
-  # And move it to the archive folder.
-  new_file.rename(f'{to_dir}/{new_file.name}')

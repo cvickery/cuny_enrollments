@@ -1,7 +1,7 @@
 #! /usr/local/bin/bash
 
 # Log this execution
-echo "`date +%Y-%m-%d` Update cuny_curriculum on `hostname`"
+echo "$0 on `hostname` at `date`"
 
 #  Command line args (lifted from Projects/cuny_curriculum/update_db)
 while [ $# -gt 0 ]
@@ -32,7 +32,7 @@ mv downloads/CV_QNS_TRNS_DTL* ../transfers_applied/downloads
 ./session_dates.py
 
 # Copy the new files to Google Drive, and archive them
-./to_drive.py
+./to_senate_site.py
 
 # Update the lists of scheduled GenEd courses.
 ./generate_offered.py
