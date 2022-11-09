@@ -28,7 +28,7 @@ done
 ./mogrify.py
 
 # (re-)generate the session dates sheet
-./session_dates.py
+# ./session_dates.py
 
 # Copy the new files to Google Drive, and archive them
 ./to_senate_site.py
