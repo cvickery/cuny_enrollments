@@ -18,7 +18,7 @@ for file in downloads/CV_QNS_TRNS_DTL*
 do echo $file
   if [[ $file != 'downloads/CV_QNS_TRNS_DTL*' ]]
   then
-    mv $file ../transfers_applied/downloads
+    mv $file ../transfer_timeline/downloads
     (( num_files += 1 ))
   fi
 done
