@@ -1,8 +1,10 @@
 #! /usr/local/bin/python3
-""" This script was previously called "to_drive.py" because it was used to build an archive of QC
-    enrollment data on Google Drive. It also did updated GenEd information for the
-    senate.qc.cuny.edu/Curriculum website. Now that QC has abandoned Google Drive (July 2022), that
-    part of the code has been amputated, but the senate website update remains.
+"""Copy gened files to Senate website.
+
+This script was previously called "to_drive.py" because it was used to build an archive of QC
+enrollment data on Google Drive. It also did updated GenEd information for the
+senate.qc.cuny.edu/Curriculum website. Now that QC has abandoned Google Drive (July 2022), that part
+of the code has been amputated, but the senate website update remains.
 
     Old Comments:
     -------------
@@ -103,4 +105,3 @@ for new_file in new_files:
     result = service.files().update(fileId=session_dates_id,
                                     media_body=media_body).execute()
     print(f'Updated {result["name"]} from {new_file.name}')
-

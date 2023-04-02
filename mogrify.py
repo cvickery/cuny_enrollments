@@ -1,6 +1,5 @@
 #! /usr/local/bin/python3
-""" Transform QCCV_SR_CLASS_ENRL_LOC_TIME_RD into something useful.
-"""
+"""Transform QCCV_SR_CLASS_ENRL_LOC_TIME_RD into something useful."""
 
 import csv
 import codecs
@@ -33,9 +32,7 @@ ClassInfo = namedtuple('ClassInfo', 'semester_code semester_name course_str titl
 
 
 def instructor_order(arg):
-  """  Name (role)
-       Return a string that orders the role PI->Si->TA->other, followed by the name.
-  """
+  """Return a string that orders the role PI->Si->TA->other, followed by the name."""
   role = 9  # No role or role not in {PI, SI, TA}
   matches = re.match(r'.*?\((.*)\)', arg)
   if matches:
@@ -47,8 +44,7 @@ def instructor_order(arg):
 
 
 def numeric_part(catnum_str):
-  """ For sorting courses in catalog number order within a discipline.
-  """
+  """For sorting courses in catalog number order within a discipline."""
   num_part = float(re.search(r'(\d+(\.\d+)?)', catnum_str).group(1))
   while num_part > 1000.0:
     num_part /= 10.0
@@ -56,9 +52,9 @@ def numeric_part(catnum_str):
 
 
 def make_meetings_str(room, start, end, days_yn):
-  """ Make a string that tells the days and times when a class section meets.
-      Spaces are filled with @, which need to be fixed once the string has been encapsulated in
-      a cell.
+  """Make a string that tells the days and times when a class section meets.
+
+  Spaces are filled with @, which need to be fixed once the string has been encapsulated in a cell.
   """
   room_str = f'{room}: ' if room != '' else room
   day_list = set()
@@ -75,8 +71,7 @@ def make_meetings_str(room, start, end, days_yn):
 
 
 def mogrify(input_file, separate_meeting_cols=False):
-  """ Convert an ENROLLMENT-CAPACITY query into a useable format, including GenEd info.
-  """
+  """Convert an ENROLLMENT-CAPACITY query into a usable format, including GenEd info."""
   input_path = Path(input_file)
   if not input_path.exists():
     raise ValueError(f'{input_path} not found.')

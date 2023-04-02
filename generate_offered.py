@@ -1,11 +1,12 @@
 #! /usr/local/bin/python3
-""" Convert latest Enrollments csv to web pages showing scheduled PLAS and Pathways courses for each
-    term not yet completed.
+"""Convert latest Enrollments csv to web pages.
 
-    A separate web page will generate links to each available one.
+Show scheduled PLAS and Pathways courses for each term not yet completed.
 
-    The idea is to generate a set of offered_gened pages, indexed by semester.
-    That's not what it does right now.
+  A separate web page will generate links to each available one.
+
+  The idea is to generate a set of offered_gened pages, indexed by semester.
+  That's not what it does right now.
 """
 
 import sys
