@@ -12,18 +12,6 @@ else
   echo Cannot access Tumbleweed from `hostname`
 fi
 
-# Piggyback transfers applied query: move to ../transfers_applied project
-(( num_files = 0 ))
-for file in downloads/CV_QNS_TRNS_DTL*
-do echo $file
-  if [[ $file != 'downloads/CV_QNS_TRNS_DTL*' ]]
-  then
-    mv $file ../transfer_timeline/downloads
-    (( num_files += 1 ))
-  fi
-done
-[[ $num_files == 0 ]] && echo 'NO NEW TRANSFERS APPLIED FILES'
-
 # (re-)generate latest enrollment and gened sheets
 ./mogrify.py
 
