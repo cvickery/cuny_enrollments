@@ -23,3 +23,12 @@ fi
 
 # Update the lists of scheduled GenEd courses.
 ./generate_offered.py
+
+# Copy current offerings to christophervickery.com
+(
+  cd offered_gened
+  scp -p *html cvickery@christophervickery.com:christophervickery.com/babbage/Curriculum/Approved_Courses/offered_gened/
+)
+
+gened_courses=`ls -t archive/*gened.csv|head -1`
+scp $gened_courses cvickery@cvickery.com:christophervickery.com/babbage/Curriculum/Approved_Courses/gened_courses.csv
