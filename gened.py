@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/env python3
 """ Create a spreadsheet showing Core and College Option gened_courses at QC.
     The dict of gened_courses is made available for access from other modules.
 """

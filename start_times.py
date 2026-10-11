@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/env python3
 """ Give CSV file with frequencies of the hours in which class sections start, by day of week at QC
     for the past year.
     Things that could/should be added:

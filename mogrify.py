@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/env python3
 """Transform QCCV_SR_CLASS_ENRL_LOC_TIME_RD into something useful."""
 
 import csv

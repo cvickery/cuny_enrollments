@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/env python3
 """Copy gened files to Senate website.
 
 This script was previously called "to_drive.py" because it was used to build an archive of QC

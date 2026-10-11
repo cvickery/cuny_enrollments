@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/env python3
 """Convert latest Enrollments csv to web pages.
 
 Show scheduled PLAS and Pathways courses for each term not yet completed.
